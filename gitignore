@@ -1,0 +1,23 @@
+# Entorno virtual
+venv/
+.venv/
+
+# Cache de Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Datos personales / biométricos - NUNCA subir
+data/
+caras/
+*.pkl
+
+# Modelos descargados (pesados, se bajan solos)
+*.onnx
+
+# VS Code
+.vscode/
+
+# Sistema
+.DS_Store
+Thumbs.db
