@@ -1,0 +1,87 @@
+import sqlite3
+import os
+
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+BD_DIR = os.path.join(BASE_DIR, "bd")
+
+os.makedirs(BD_DIR, exist_ok=True)
+
+conexion = sqlite3.connect(os.path.join(BD_DIR, "bitacora.db"))
+cursor = conexion.cursor()
+
+cursor.execute("PRAGMA foreign_keys = ON;")
+
+cursor.executescript("""
+CREATE TABLE IF NOT EXISTS usuario (
+    id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre_usuario TEXT NOT NULL,
+    rol_usuario TEXT NOT NULL,
+    username_usuario TEXT NOT NULL,
+    correo_usuario TEXT NOT NULL,
+    contrasena_usuario TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS autorizador (
+    id_autorizador INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre_autorizador TEXT NOT NULL,
+    puesto_autorizador TEXT NOT NULL,
+    departamento_autorizador TEXT NOT NULL,
+    correo_autorizador TEXT NOT NULL,
+    telefono_autorizador TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS persona (
+    id_persona INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre_persona TEXT NOT NULL,
+    departamento_proveedor_persona TEXT NOT NULL,
+    id_autorizador INTEGER,
+    rostro_embedding_persona BLOB NOT NULL,
+    correo_persona TEXT NOT NULL,
+    firma_persona BLOB NOT NULL,
+    ine_persona BLOB NOT NULL,
+    telefono_persona TEXT NOT NULL,
+    FOREIGN KEY (id_autorizador) REFERENCES autorizador(id_autorizador)
+
+);
+CREATE TABLE IF NOT EXISTS auditoria (
+    id_auditoria INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_usuario INTEGER NOT NULL,
+    fecha_auditoria TEXT NOT NULL,
+    accion_auditoria TEXT NOT NULL,
+    tabla_afectada_auditoria TEXT NOT NULL,
+    id_registro_afectado_auditoria INTEGER NOT NULL,
+    hora_auditoria TEXT NOT NULL,
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+);
+CREATE TABLE IF NOT EXISTS visita (
+    id_visita INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_persona INTEGER NOT NULL,
+    id_usuario_entrada INTEGER NOT NULL,
+    id_usuario_salida INTEGER,
+    id_autorizador INTEGER,
+    fecha_visita TEXT NOT NULL,
+    hora_entrada_visita TEXT NOT NULL,
+    hora_salida_visita TEXT,
+    fotografia_entrada_visita BLOB NOT NULL,
+    fotografia_salida_visita BLOB,
+    tipo_entrada_visita TEXT NOT NULL,
+    autorizador_nombre_copiado TEXT NOT NULL,
+    FOREIGN KEY (id_usuario_entrada) REFERENCES usuario(id_usuario),
+    FOREIGN KEY (id_usuario_salida) REFERENCES usuario(id_usuario),
+    FOREIGN KEY (id_autorizador) REFERENCES autorizador(id_autorizador),
+    FOREIGN KEY (id_persona) REFERENCES persona(id_persona)
+);
+
+    """)
+
+
+
+
+
+
+
+
+
+
+conexion.commit()
+conexion.close()
+
+print("Base de datos creada correctamente.")
