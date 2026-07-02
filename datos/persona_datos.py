@@ -1,10 +1,9 @@
 import sqlite3
-import os
 from config import BD_PATH
 
 
 def obtener_persona(id_persona):
-    conexion = sqlite3.connect(os.path.join(BD_PATH))
+    conexion = sqlite3.connect(BD_PATH)
     cursor = conexion.cursor()
 
     cursor.execute("SELECT * FROM persona WHERE id_persona = ?", (id_persona,))
@@ -13,7 +12,7 @@ def obtener_persona(id_persona):
     return resultado
 
 def obtener_todos_los_rostros():
-    conexion = sqlite3.connect(os.path.join(BD_PATH))
+    conexion = sqlite3.connect(BD_PATH)
     cursor = conexion.cursor()
     cursor.execute("SELECT id_persona, rostro_embedding_persona FROM persona")
     resultado = cursor.fetchall()
@@ -22,7 +21,7 @@ def obtener_todos_los_rostros():
 
 
 def insertar_persona(nombre_persona, departamento_proveedor_persona, id_autorizador, emb_blob, correo_persona, firma_bytes, ine_bytes, telefono_persona):
-    conexion = sqlite3.connect(os.path.join(BD_PATH))
+    conexion =  sqlite3.connect(BD_PATH)
     cursor = conexion.cursor()
     cursor.execute("""
     INSERT INTO persona(

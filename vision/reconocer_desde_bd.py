@@ -77,7 +77,7 @@ while True:
                         id_persona=id_reconocido,
                         id_usuario_entrada = 1,
                         fotografia_entrada_visita = ruta_foto,
-                        tipo_entrada_visita = tipo_entrada_visita
+                        tipo_entrada_visita = "facial"
                 )
                     print("Registro: ", resultado)
             else: 
