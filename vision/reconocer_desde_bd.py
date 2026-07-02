@@ -4,11 +4,18 @@ import os
 import pickle
 import numpy as np
 from datos.persona_datos import obtener_todos_los_rostros
-from logica.gestion_visitas import registrar_entrada
+from logica.gestion_visitas import registrar_entrada, registrar_salida
+from vision.antispoofing import cargar_modelo, es_cara_real
+
+
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CARAS_DIR = os.path.join(BASE_DIR, "caras")
 DATA_DIR = os.path.join(BASE_DIR, "data")
+MODELO_ANTISPOOF_PATH = os.path.join(BASE_DIR, "models", "best_model_quantized.onnx")
+
+session_spoof, input_name_spoof = cargar_modelo(MODELO_ANTISPOOF_PATH)
+
 rostros_bd = obtener_todos_los_rostros()
 rostros = []
 for id_persona, blob in rostros_bd:
@@ -23,6 +30,7 @@ contador = 0
 n = 5
 ultimas_caras = []
 id_reconocido = None
+bbox_reconocido = None
 while True:
     ret, frame = cap.read()
     if not ret:
@@ -33,6 +41,7 @@ while True:
         faces = app.get(frame)
         ultimas_caras = []
         id_reconocido = None
+        bbox_reconocido = None
         for face in faces:
             x1, y1, x2, y2 = face.bbox.astype(int)
             emb_vivo = face.embedding
@@ -43,8 +52,9 @@ while True:
                 if similitud > mejor_similitud:
                     mejor_similitud = similitud
                     mejor_id = id_persona
-            if mejor_similitud > 0.5:
+            if mejor_similitud > 0.6:
                 id_reconocido = mejor_id
+                bbox_reconocido = face.bbox
                 texto = f"ID: {mejor_id} ({mejor_similitud:.2f})"
             else:
                 id_reconocido = None
@@ -59,17 +69,35 @@ while True:
         break
     if tecla == ord('e'):
         if id_reconocido is not None:
-            exito, buffer = cv2.imencode('.jpg', frame)
-            foto_bytes = buffer.tobytes()
-            resultado = registrar_entrada(
-                id_persona=id_reconocido,
-                id_usuario_entrada = 1,
-                fotografia_entrada_visita = foto_bytes,
-                tipo_entrada_visita = "Entrada Normal"
-            )
-            print("Registro: ", resultado)
+            if es_cara_real(frame, bbox_reconocido, session_spoof, input_name_spoof):
+                exito, buffer = cv2.imencode('.jpg', frame)
+                foto_bytes = buffer.tobytes()
+                resultado = registrar_entrada(
+                    id_persona=id_reconocido,
+                    id_usuario_entrada = 1,
+                    fotografia_entrada_visita = foto_bytes,
+                    tipo_entrada_visita = "Entrada Normal"
+                )
+                print("Registro: ", resultado)
+            else: 
+                print("SPOOF detectado - no se puede realizar el registro")
         else:
             print("No hay persona reconocida para registrar")
+    if tecla == ord('s'):
+            if id_reconocido is not None:
+                if es_cara_real(frame, bbox_reconocido, session_spoof, input_name_spoof):
+                    exito, buffer = cv2.imencode('.jpg', frame)
+                    foto_bytes = buffer.tobytes()
+                    resultado = registrar_salida(
+                        id_persona = id_reconocido,
+                        id_usuario_salida = 1,
+                        fotografia_salida_visita=foto_bytes
+                    )
+                    print("Salida:  ", resultado)
+                else:
+                    print("SPOOF detectado - no se puede registrar la salida")
+            else:
+                print("No hay persona reconocida para registrar salida")
 
 
         
