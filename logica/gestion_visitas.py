@@ -1,9 +1,8 @@
 from datos.persona_datos import obtener_persona
 from datos.autorizador_datos import obtener_autorizador
-from datos.visita_datos import tiene_visita_abierta, insertar_visita
-from datetime import datetime
 from datos.visita_datos import tiene_visita_abierta, insertar_visita, obtener_visita_abierta, cerrar_visita
-
+from datos.auditoria_datos import insertar_auditoria
+from datetime import datetime
 def registrar_entrada(id_persona, id_usuario_entrada, fotografia_entrada_visita, tipo_entrada_visita):
     # Visita abierta
     if tiene_visita_abierta(id_persona):
@@ -24,8 +23,14 @@ def registrar_entrada(id_persona, id_usuario_entrada, fotografia_entrada_visita,
         fecha_visita=datetime.now().strftime("%Y-%m-%d"),
         hora_entrada_visita=datetime.now().strftime("%H:%M:%S"),
         fotografia_entrada_visita=fotografia_entrada_visita,
-        tipo_entrada_visita=tipo_entrada_visita,
+        tipo_entrada_visita="facial",
         autorizador_nombre_copiado=autorizador_nombre_copiado  # Copiando el nombre del autorizador
+    )
+    insertar_auditoria(
+        id_usuario_entrada,
+        "Registro Entrada",
+        "Visita",
+        id_visita
     )
     return id_visita
 
@@ -39,7 +44,17 @@ def registrar_salida(id_persona, id_usuario_salida, fotografia_salida_visita):
     id_visita = visita[0]
     hora_salida_visita = datetime.now().strftime("%H:%M:%S")   
     filas = cerrar_visita(id_visita, hora_salida_visita,fotografia_salida_visita, id_usuario_salida )
-    return "Se ha registrado su salida"
+    if filas == 1:
+        insertar_auditoria(
+            id_usuario_salida,
+            "Registro Salida",
+            "Visita",
+            id_visita
+        )
+        return f"Salida registrada. ID VISITA: {id_visita}"
+    else:
+        return("No se pudo cerrar la visita")
+    
         
         
     
