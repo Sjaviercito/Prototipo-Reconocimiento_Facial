@@ -1,12 +1,10 @@
 import sqlite3
 import os
 from datetime import datetime
+from config import BD_PATH
 
 def insertar_auditoria(id_usuario, accion, tabla_afectada, id_registro_afectado):
-    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    BD_DIR = os.path.join(BASE_DIR, "bd")
-
-    conexion = sqlite3.connect(os.path.join(BD_DIR, "bitacora.db"))
+    conexion = sqlite3.connect(BD_PATH)
     cursor = conexion.cursor()
     fecha_auditoria = datetime.now().strftime("%Y-%m-%d")
     hora_auditoria = datetime.now().strftime("%H:%M:%S")

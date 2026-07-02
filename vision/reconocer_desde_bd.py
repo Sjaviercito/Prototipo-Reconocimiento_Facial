@@ -1,18 +1,10 @@
 from insightface.app import FaceAnalysis
 import cv2
-import os
-import pickle
 import numpy as np
 from datos.persona_datos import obtener_todos_los_rostros
 from logica.gestion_visitas import registrar_entrada, registrar_salida
 from vision.antispoofing import cargar_modelo, es_cara_real
-
-
-
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-CARAS_DIR = os.path.join(BASE_DIR, "caras")
-DATA_DIR = os.path.join(BASE_DIR, "data")
-MODELO_ANTISPOOF_PATH = os.path.join(BASE_DIR, "models", "best_model_quantized.onnx")
+from config import MODELO_ANTISPOOF_PATH
 
 session_spoof, input_name_spoof = cargar_modelo(MODELO_ANTISPOOF_PATH)
 
@@ -76,7 +68,7 @@ while True:
                     id_persona=id_reconocido,
                     id_usuario_entrada = 1,
                     fotografia_entrada_visita = foto_bytes,
-                    tipo_entrada_visita = "Entrada Normal"
+                    tipo_entrada_visita = "Facial"
                 )
                 print("Registro: ", resultado)
             else: 
