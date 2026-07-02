@@ -5,6 +5,11 @@ from datos.persona_datos import obtener_todos_los_rostros
 from logica.gestion_visitas import registrar_entrada, registrar_salida
 from vision.antispoofing import cargar_modelo, es_cara_real
 from config import MODELO_ANTISPOOF_PATH
+from utils.guardar_foto import guardar_foto
+from config import ENTRADAS_DIR
+from config import SALIDAS_DIR
+from datetime import datetime
+from datos.visita_datos import tiene_visita_abierta
 
 session_spoof, input_name_spoof = cargar_modelo(MODELO_ANTISPOOF_PATH)
 
@@ -62,15 +67,19 @@ while True:
     if tecla == ord('e'):
         if id_reconocido is not None:
             if es_cara_real(frame, bbox_reconocido, session_spoof, input_name_spoof):
-                exito, buffer = cv2.imencode('.jpg', frame)
-                foto_bytes = buffer.tobytes()
-                resultado = registrar_entrada(
-                    id_persona=id_reconocido,
-                    id_usuario_entrada = 1,
-                    fotografia_entrada_visita = foto_bytes,
-                    tipo_entrada_visita = "Facial"
+                if tiene_visita_abierta(id_reconocido):
+                    print("La persona ya tiene una visita abierta. No se guarda registro")
+                else:
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    nombre_foto = f"entrada_persona_{id_reconocido}_{timestamp}.jpg"
+                    ruta_foto = guardar_foto(frame, ENTRADAS_DIR, nombre_foto)
+                    resultado = registrar_entrada(
+                        id_persona=id_reconocido,
+                        id_usuario_entrada = 1,
+                        fotografia_entrada_visita = ruta_foto,
+                        tipo_entrada_visita = tipo_entrada_visita
                 )
-                print("Registro: ", resultado)
+                    print("Registro: ", resultado)
             else: 
                 print("SPOOF detectado - no se puede realizar el registro")
         else:
@@ -78,14 +87,18 @@ while True:
     if tecla == ord('s'):
             if id_reconocido is not None:
                 if es_cara_real(frame, bbox_reconocido, session_spoof, input_name_spoof):
-                    exito, buffer = cv2.imencode('.jpg', frame)
-                    foto_bytes = buffer.tobytes()
-                    resultado = registrar_salida(
-                        id_persona = id_reconocido,
-                        id_usuario_salida = 1,
-                        fotografia_salida_visita=foto_bytes
+                    if not tiene_visita_abierta(id_reconocido):
+                        print("La persona no tiene visita abierta. NO se registra nada")
+                    else:
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        nombre_foto = f"salida_persona_{id_reconocido}_{timestamp}.jpg"
+                        ruta_foto = guardar_foto(frame, SALIDAS_DIR, nombre_foto)
+                        resultado = registrar_salida(
+                            id_persona = id_reconocido,
+                            id_usuario_salida = 1,
+                            fotografia_salida_visita=ruta_foto
                     )
-                    print("Salida:  ", resultado)
+                        print("Salida:  ", resultado)
                 else:
                     print("SPOOF detectado - no se puede registrar la salida")
             else:
