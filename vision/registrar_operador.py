@@ -6,6 +6,7 @@ from vision.antispoofing import cargar_modelo, es_cara_real
 from config import MODELO_ANTISPOOF_PATH
 import numpy as np
 from datos.usuario_datos import insertar_usuario
+from config import CARAS_DIR
 
 nombre = input("Nombre del operador: ")
 username = input("Username: ")
@@ -19,7 +20,7 @@ print("PIN HASHEADO: ", pin_hash)
 app = FaceAnalysis(allowed_modules=['detection', 'recognition'])
 app.prepare(ctx_id=-1, det_size=(320, 320))
 
-carpeta_operador = os.path.join("caras", "operadores", nombre)
+carpeta_operador = os.path.join(CARAS_DIR, "operadores", nombre)
 os.makedirs(carpeta_operador, exist_ok=True)
 
 def cara_valida_para_registro(face):

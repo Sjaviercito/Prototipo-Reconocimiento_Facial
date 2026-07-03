@@ -3,10 +3,12 @@ import cv2
 import os
 import pickle
 import numpy as np
+from config import BD_PATH
+import sqlite3
 
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-CARAS_DIR = os.path.join(BASE_DIR, "caras")
-DATA_DIR = os.path.join(BASE_DIR, "data")
+
+conexion = sqlite3.connect(BD_PATH)
+cursor = conexion.cursor()
 
 app = FaceAnalysis()
 app.prepare(ctx_id=-1, det_size=(640, 640))

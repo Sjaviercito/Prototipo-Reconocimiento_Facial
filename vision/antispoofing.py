@@ -49,7 +49,7 @@ def es_real(logits, umbral):
     return diferencia >= umbral
 
 
-def es_cara_real(frame, bbox, session, input_name, umbral=0.5):
+def es_cara_real(frame, bbox, session, input_name, umbral=0.0):
     crop = recortar_cara(frame, bbox)
     crop_preprocesado = preprocesar(crop)
     crop_predecir = predecir(session, input_name, crop_preprocesado)

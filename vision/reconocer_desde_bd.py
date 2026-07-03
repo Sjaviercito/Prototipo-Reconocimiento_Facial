@@ -10,6 +10,7 @@ from config import ENTRADAS_DIR
 from config import SALIDAS_DIR
 from datetime import datetime
 from datos.visita_datos import tiene_visita_abierta
+from vision.login_operador import login_operador
 
 session_spoof, input_name_spoof = cargar_modelo(MODELO_ANTISPOOF_PATH)
 
@@ -22,6 +23,13 @@ for id_persona, blob in rostros_bd:
 app = FaceAnalysis(allowed_modules=['detection','recognition'])
 app.prepare(ctx_id=-1, det_size=(320, 320))
 
+id_usuario_actual = login_operador()
+
+if id_usuario_actual is None:
+    print("No se inició sesión. Cerrando sistema.")
+    exit()
+
+print(f"Sesión iniciada. Operador ID: {id_usuario_actual}")
 cap = cv2.VideoCapture(0) #Abrir la camara y guardar lo que captura en cap
 contador = 0
 n = 5
@@ -59,7 +67,7 @@ while True:
             ultimas_caras.append((x1, y1, x2, y2, texto))
     for (x1, y1, x2, y2, texto) in ultimas_caras:     
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-        cv2.putText(frame, texto, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)        
+        cv2.putText(frame, "e: entrada | s: salida | c: cerrar sesion | q: salir", (10,30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)        
     cv2.imshow('Rostros Detectados', frame)
     tecla = cv2.waitKey(1)
     if tecla == ord('q'):
@@ -75,7 +83,7 @@ while True:
                     ruta_foto = guardar_foto(frame, ENTRADAS_DIR, nombre_foto)
                     resultado = registrar_entrada(
                         id_persona=id_reconocido,
-                        id_usuario_entrada = 1,
+                        id_usuario_entrada = id_usuario_actual,
                         fotografia_entrada_visita = ruta_foto,
                         tipo_entrada_visita = "facial"
                 )
@@ -95,7 +103,7 @@ while True:
                         ruta_foto = guardar_foto(frame, SALIDAS_DIR, nombre_foto)
                         resultado = registrar_salida(
                             id_persona = id_reconocido,
-                            id_usuario_salida = 1,
+                            id_usuario_salida = id_usuario_actual,
                             fotografia_salida_visita=ruta_foto
                     )
                         print("Salida:  ", resultado)
@@ -103,6 +111,9 @@ while True:
                     print("SPOOF detectado - no se puede registrar la salida")
             else:
                 print("No hay persona reconocida para registrar salida")
+    if tecla == ord('c'):
+        print("Sesión cerrada.")
+        break
 
 
         

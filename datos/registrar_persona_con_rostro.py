@@ -3,12 +3,9 @@ import os
 import cv2
 from insightface.app import FaceAnalysis
 import numpy as np
+from config import BD_PATH, CARAS_DIR
 
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-BD_DIR = os.path.join(BASE_DIR, "bd")
-CARAS_DIR = os.path.join(BASE_DIR, "caras")
-
-conexion = sqlite3.connect(os.path.join(BD_DIR, "bitacora.db"))
+conexion = sqlite3.connect(BD_PATH)
 cursor = conexion.cursor()
 app = FaceAnalysis()
 app.prepare(ctx_id=-1, det_size=(640, 640))
