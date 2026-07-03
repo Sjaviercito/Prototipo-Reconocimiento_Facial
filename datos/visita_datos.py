@@ -83,7 +83,7 @@ def obtener_todas_las_visitas():
                v.tipo_entrada_visita, v.autorizador_nombre_copiado
         FROM visita v
         JOIN persona p ON v.id_persona = p.id_persona
-        ORDER BY v.id_visita DESC
+        ORDER BY v.id_visita ASC
     """)
     resultado = cursor.fetchall()
     conexion.close()

@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS usuario (
     rol_usuario TEXT NOT NULL,
     username_usuario TEXT NOT NULL,
     correo_usuario TEXT NOT NULL,
+    pin_hash_usuario TEXT,
     contrasena_usuario TEXT NOT NULL,
     rostro_embedding_usuario BLOB
 );

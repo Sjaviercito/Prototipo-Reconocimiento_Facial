@@ -13,8 +13,11 @@ nombre = input("Nombre del operador: ")
 username = input("Username: ")
 correo = input("Correo: ")
 rol = input("Rol (admin/operador): ")
-pin = getpass("PIN: ")
+pin = getpass("PIN (para cámara): ")
+password = getpass("Contraseña (para panel): ")
 
+
+password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 pin_hash = bcrypt.hashpw(pin.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 print("PIN HASHEADO: ", pin_hash)
 
@@ -26,7 +29,7 @@ os.makedirs(carpeta_operador, exist_ok=True)
 
 def cara_valida_para_registro(face):
     # 1. Confianza alta de detección
-    if face.det_score < 0.80:
+    if face.det_score < 0.78:
         return False, f"Baja confianza de deteccion: {face.det_score:.2f}"
     return True, "Cara valida"
 
@@ -100,7 +103,8 @@ else:
         rol=rol,
         username=username,
         correo=correo,
-        contrasena_hash=pin_hash,
+        contrasena_hash=password_hash,
+        pin_hash = pin_hash,
         rostro_embedding=embedding_blob
     )
 

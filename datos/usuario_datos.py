@@ -4,7 +4,7 @@ from config import BD_PATH
 
 
 
-def insertar_usuario(nombre, rol, username, correo, contrasena_hash, rostro_embedding = None ):
+def insertar_usuario(nombre, rol, username, correo, contrasena_hash, rostro_embedding = None, pin_hash_usuario ):
     conexion = sqlite3.connect(BD_PATH)
     cursor = conexion.cursor()
     cursor.execute("""
@@ -14,8 +14,9 @@ def insertar_usuario(nombre, rol, username, correo, contrasena_hash, rostro_embe
             username_usuario,
             correo_usuario,
             contrasena_usuario,
+            pin_hash_usuario,
             rostro_embedding_usuario) VALUES (?, ?, ?, ?, ?, ?)""",
-            (nombre, rol, username, correo, contrasena_hash, rostro_embedding))
+            (nombre, rol, username, correo, contrasena_hash, rostro_embedding, pin_hash_usuario))
     conexion.commit()
     id_usuario = cursor.lastrowid
     conexion.close()
@@ -25,6 +26,14 @@ def obtener_usuario(id_usuario):
     conexion = sqlite3.connect(BD_PATH)
     cursor = conexion.cursor()
     cursor.execute("SELECT * FROM usuario WHERE id_usuario = ?", (id_usuario,))
+    resultado = cursor.fetchone()
+    conexion.close()
+    return resultado
+
+def obtener_usuario_por_username(username):
+    conexion = sqlite3.connect(BD_PATH)
+    cursor = conexion.cursor()
+    cursor.execute("SELECT * FROM usuario WHERE username_usuario = ?", (username,))
     resultado = cursor.fetchone()
     conexion.close()
     return resultado
