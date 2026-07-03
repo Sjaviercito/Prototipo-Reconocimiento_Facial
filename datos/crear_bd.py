@@ -1,14 +1,11 @@
 import sqlite3
 import os
-
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-BD_DIR = os.path.join(BASE_DIR, "bd")
+from config import BD_PATH, BD_DIR
 
 os.makedirs(BD_DIR, exist_ok=True)
 
-conexion = sqlite3.connect(os.path.join(BD_DIR, "bitacora.db"))
+conexion = sqlite3.connect(BD_PATH)
 cursor = conexion.cursor()
-
 cursor.execute("PRAGMA foreign_keys = ON;")
 
 cursor.executescript("""
@@ -18,7 +15,8 @@ CREATE TABLE IF NOT EXISTS usuario (
     rol_usuario TEXT NOT NULL,
     username_usuario TEXT NOT NULL,
     correo_usuario TEXT NOT NULL,
-    contrasena_usuario TEXT NOT NULL
+    contrasena_usuario TEXT NOT NULL,
+    rostro_embedding_usuario BLOB
 );
 CREATE TABLE IF NOT EXISTS autorizador (
     id_autorizador INTEGER PRIMARY KEY AUTOINCREMENT,

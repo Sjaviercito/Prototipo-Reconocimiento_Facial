@@ -1,10 +1,9 @@
 import sqlite3
 import os
+from config import BD_PATH
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-DATOS_DIR = os.path.join(BASE_DIR, "datos")
-
-conexion = sqlite3.connect(os.path.join(DATOS_DIR, "bitacora.db"))
+conexion = sqlite3.connect(BD_PATH)
 cursor = conexion.cursor()
 
 cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
