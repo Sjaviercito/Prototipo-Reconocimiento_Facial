@@ -59,3 +59,33 @@ def cerrar_visita(id_visita, hora_salida_visita, fotografia_salida_visita, id_us
     filas = cursor.rowcount
     conexion.close()
     return filas
+
+
+def obtener_visitas_abiertas():
+    conexion = sqlite3.connect(BD_PATH)
+    cursor = conexion.cursor()
+    cursor.execute("""
+        SELECT v.id_visita, p.nombre_persona, v.fecha_visita, v.hora_entrada_visita
+        FROM visita v
+        JOIN persona p ON v.id_persona = p.id_persona
+        WHERE v.hora_salida_visita IS NULL""")
+    resultado = cursor.fetchall()
+    conexion.close()
+    return resultado
+
+
+def obtener_todas_las_visitas():
+    conexion = sqlite3.connect(BD_PATH)
+    cursor = conexion.cursor()
+    cursor.execute("""
+        SELECT v.id_visita, v.fecha_visita, p.nombre_persona, 
+               v.hora_entrada_visita, v.hora_salida_visita, 
+               v.tipo_entrada_visita, v.autorizador_nombre_copiado
+        FROM visita v
+        JOIN persona p ON v.id_persona = p.id_persona
+        ORDER BY v.id_visita DESC
+    """)
+    resultado = cursor.fetchall()
+    conexion.close()
+    return resultado
+    

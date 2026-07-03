@@ -7,12 +7,13 @@ from config import MODELO_ANTISPOOF_PATH
 import numpy as np
 from datos.usuario_datos import insertar_usuario
 from config import CARAS_DIR
+from getpass import getpass
 
 nombre = input("Nombre del operador: ")
 username = input("Username: ")
 correo = input("Correo: ")
 rol = input("Rol (admin/operador): ")
-pin = input("PIN: ")
+pin = getpass("PIN: ")
 
 pin_hash = bcrypt.hashpw(pin.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 print("PIN HASHEADO: ", pin_hash)
