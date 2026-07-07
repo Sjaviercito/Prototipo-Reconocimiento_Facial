@@ -8,7 +8,12 @@ from datos.usuario_datos import obtener_usuario_por_username
 from api.seguridad import crear_token
 from fastapi import Depends
 from api.seguridad import verificar_sesion
+from fastapi.staticfiles import StaticFiles
+
+
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="api/static"), name="static")
+
 
 @app.get("/adentro")
 def quien_esta_adentro(sesion: dict = Depends(verificar_sesion)):
@@ -17,15 +22,20 @@ def quien_esta_adentro(sesion: dict = Depends(verificar_sesion)):
 
 
 @app.get("/visitas")
-def ver_todas_las_visitas():
+def ver_todas_las_visitas(sesion: dict = Depends(verificar_sesion)):
     visitas = obtener_todas_las_visitas()
     return {"visitas": visitas}
+
+@app.get("/login-page", response_class=HTMLResponse)
+def login_page():
+    with open("api/static/login.html", "r", encoding="utf-8") as f:
+        return f.read()
 
 
 
 @app.get("/", response_class=HTMLResponse)
 def panel():
-    with open("api/static/index.html", "r", encoding="utf-8") as f:
+    with open("api/static/panel.html", "r", encoding="utf-8") as f:
         return f.read()
     
 class LoginDatos(BaseModel):
