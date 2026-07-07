@@ -6,11 +6,12 @@ from pydantic import BaseModel
 import bcrypt
 from datos.usuario_datos import obtener_usuario_por_username
 from api.seguridad import crear_token
-
-
+from fastapi import Depends
+from api.seguridad import verificar_sesion
 app = FastAPI()
+
 @app.get("/adentro")
-def quien_esta_adentro():
+def quien_esta_adentro(sesion: dict = Depends(verificar_sesion)):
     visitas = obtener_visitas_abiertas()
     return {"adentro": visitas}
 
@@ -38,7 +39,7 @@ def login(datos: LoginDatos):
         raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos")
 
     # el hash está en la columna contrasena_usuario (posición según tu tabla)
-    hash_guardado = usuario[5]   # ajusta el índice a tu columna de contraseña
+    hash_guardado = usuario[6]   # ajusta el índice a tu columna de contraseña
 
     if not bcrypt.checkpw(datos.password.encode("utf-8"), hash_guardado.encode("utf-8")):
         raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos")

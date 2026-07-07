@@ -5,6 +5,7 @@ from insightface.app import FaceAnalysis
 from vision.antispoofing import cargar_modelo, es_cara_real
 from datos.operador_datos import obtener_rostros_operadores
 from config import MODELO_ANTISPOOF_PATH
+from getpass import getpass
 
 session_spoof, input_name_spoof = cargar_modelo(MODELO_ANTISPOOF_PATH)
 operadores_bd = obtener_rostros_operadores()
@@ -91,7 +92,7 @@ def login_operador():
                 print("SPOOF detectado. Login rechazado.")
                 continue
 
-            pin_ingresado = input("PIN: ")
+            pin_ingresado = getpass("PIN: ")
 
             if bcrypt.checkpw(pin_ingresado.encode("utf-8"), pin_hash_reconocido.encode("utf-8")):
                 print(f"Acceso permitido. Bienvenido {nombre_reconocido}")

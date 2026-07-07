@@ -4,7 +4,7 @@ from config import BD_PATH
 
 
 
-def insertar_usuario(nombre, rol, username, correo, contrasena_hash, rostro_embedding = None, pin_hash_usuario ):
+def insertar_usuario(nombre, rol, username, correo, contrasena_hash, pin_hash_usuario, rostro_embedding = None  ):
     conexion = sqlite3.connect(BD_PATH)
     cursor = conexion.cursor()
     cursor.execute("""
@@ -15,8 +15,8 @@ def insertar_usuario(nombre, rol, username, correo, contrasena_hash, rostro_embe
             correo_usuario,
             contrasena_usuario,
             pin_hash_usuario,
-            rostro_embedding_usuario) VALUES (?, ?, ?, ?, ?, ?)""",
-            (nombre, rol, username, correo, contrasena_hash, rostro_embedding, pin_hash_usuario))
+            rostro_embedding_usuario) VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (nombre, rol, username, correo, contrasena_hash, pin_hash_usuario, rostro_embedding))
     conexion.commit()
     id_usuario = cursor.lastrowid
     conexion.close()

@@ -19,7 +19,6 @@ password = getpass("Contraseña (para panel): ")
 
 password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 pin_hash = bcrypt.hashpw(pin.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-print("PIN HASHEADO: ", pin_hash)
 
 app = FaceAnalysis(allowed_modules=['detection', 'recognition'])
 app.prepare(ctx_id=-1, det_size=(320, 320))
@@ -104,7 +103,7 @@ else:
         username=username,
         correo=correo,
         contrasena_hash=password_hash,
-        pin_hash = pin_hash,
+        pin_hash_usuario = pin_hash,
         rostro_embedding=embedding_blob
     )
 
