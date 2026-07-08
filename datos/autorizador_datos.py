@@ -1,9 +1,10 @@
 import sqlite3
 import os
 from config import BD_PATH
+from datos.conexion import obtener_conexion
 
 def insertar_autorizador(nombre,puesto,departamento,correo, telefono):
-    conexion = sqlite3.connect(os.path.join(BD_PATH))
+    conexion = obtener_conexion()
     cursor = conexion.cursor()
 
     cursor.execute("""
@@ -22,7 +23,7 @@ def insertar_autorizador(nombre,puesto,departamento,correo, telefono):
     conexion.close()
     return id_autorizador
 def obtener_autorizador(id_autorizador):
-    conexion = sqlite3.connect(os.path.join(BD_PATH))
+    conexion = obtener_conexion()
     cursor = conexion.cursor()
     cursor.execute("SELECT * FROM autorizador WHERE id_autorizador = ?", (id_autorizador,))
     resultado = cursor.fetchone()

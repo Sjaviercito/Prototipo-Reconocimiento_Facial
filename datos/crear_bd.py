@@ -69,6 +69,26 @@ CREATE TABLE IF NOT EXISTS visita (
     FOREIGN KEY (id_autorizador) REFERENCES autorizador(id_autorizador),
     FOREIGN KEY (id_persona) REFERENCES persona(id_persona)
 );
+CREATE TABLE IF NOT EXISTS reglamento(
+    id_reglamento INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha_subida_reglamento TEXT NOT NULL,
+    ruta_pdf_reglamento TEXT NOT NULL,
+    nombre_version_reglamento TEXT NOT NULL,
+    id_usuario INTEGER NOT NULL,
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
+);
+CREATE TABLE IF NOT EXISTS firma(
+    id_firma INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_persona INTEGER NOT NULL,
+    id_reglamento INTEGER NOT NULL,
+    fecha_firma TEXT NOT NULL,
+    hora_firma TEXT NOT NULL,
+    ruta_firma TEXT NOT NULL,
+    id_usuario INTEGER NOT NULL,
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
+    FOREIGN KEY (id_persona) REFERENCES persona(id_persona),
+    FOREIGN KEY (id_reglamento) REFERENCES reglamento(id_reglamento)
+);
 
     """)
 

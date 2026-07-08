@@ -2,7 +2,6 @@ import sqlite3
 import os
 from config import BD_PATH
 
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 conexion = sqlite3.connect(BD_PATH)
 cursor = conexion.cursor()
 
