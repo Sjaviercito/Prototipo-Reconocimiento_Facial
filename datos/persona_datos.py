@@ -20,23 +20,25 @@ def obtener_todos_los_rostros():
     return resultado
 
 
-def insertar_persona(nombre_persona, departamento_proveedor_persona, id_autorizador, emb_blob, correo_persona, firma_bytes, ine_bytes, telefono_persona):
+def insertar_persona(nombre_persona, departamento_proveedor_persona, tipo_persona, id_autorizador, emb_blob, correo_persona, firma_bytes, ine_bytes, telefono_persona):
     conexion =  sqlite3.connect(BD_PATH)
     cursor = conexion.cursor()
     cursor.execute("""
     INSERT INTO persona(
     nombre_persona,
     departamento_proveedor_persona,
+    tipo_persona,
     id_autorizador,
     rostro_embedding_persona,
     correo_persona,
     firma_persona,
     ine_persona,
     telefono_persona
-)VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+)VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
     (
         nombre_persona,
         departamento_proveedor_persona,
+        tipo_persona,
         id_autorizador,
         emb_blob,
         correo_persona,

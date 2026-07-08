@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS persona (
     id_persona INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre_persona TEXT NOT NULL,
     departamento_proveedor_persona TEXT NOT NULL,
+    tipo_persona TEXT NOT NULL,
     id_autorizador INTEGER,
     rostro_embedding_persona BLOB NOT NULL,
     correo_persona TEXT NOT NULL,

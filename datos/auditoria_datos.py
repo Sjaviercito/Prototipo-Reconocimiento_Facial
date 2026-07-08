@@ -28,5 +28,19 @@ def insertar_auditoria(id_usuario, accion, tabla_afectada, id_registro_afectado)
     id_auditoria = cursor.lastrowid
     conexion.close()
     return id_auditoria
+
+def obtener_toda_la_auditoria():
+    conexion = sqlite3.connect(BD_PATH)
+    cursor = conexion.cursor()
+    cursor.execute("""
+        SELECT a.id_auditoria, u.nombre_usuario, a.fecha_auditoria, a.hora_auditoria,
+               a.accion_auditoria, a.tabla_afectada_auditoria, a.id_registro_afectado_auditoria
+        FROM auditoria a
+        JOIN usuario u ON a.id_usuario = u.id_usuario
+        ORDER BY a.id_auditoria DESC
+    """)
+    resultado = cursor.fetchall()
+    conexion.close()
+    return resultado
     
 

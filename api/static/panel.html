@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="/static/panel.css">
 </head>
 <body>
+    <button id="boton-recarga" onclick="actualizar_todo()">Actualizar</button>
     <h1>Personas dentro del SITE</h1>
     <table>
         <thead>
@@ -25,13 +26,31 @@
                 <th>ID</th>
                 <th>Fecha</th>
                 <th>Nombre</th>
+                <th>Tipo Persona</th>
                 <th>Entrada</th>
                 <th>Salida</th>
-                <th>Tipo</th>
+                <th>Tipo Entrada</th>
                 <th>Autorizó</th>
+                <th>Op. Entrada</th>
+                <th>Op. Salida</th>
             </tr>
         </thead>
         <tbody id="tabla-historial"></tbody>
+    </table>
+    <h1>Auditoría</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Accion</th>
+                <th>Tabla</th>
+                <th>Registro</th>
+            </tr>
+        </thead>
+        <tbody id="tabla-auditoria"></tbody>
     </table>
     <script src="/static/panel.js"></script>
 </body>

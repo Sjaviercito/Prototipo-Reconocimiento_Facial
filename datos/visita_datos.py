@@ -1,9 +1,8 @@
-import sqlite3
-from config import BD_PATH
 
+from datos.conexion import obtener_conexion
 
 def tiene_visita_abierta(id_persona):
-    conexion = sqlite3.connect(BD_PATH)
+    conexion = obtener_conexion()
     cursor = conexion.cursor()
     cursor.execute("SELECT * FROM visita WHERE id_persona = ? AND hora_salida_visita IS NULL", (id_persona,))
     resultado = cursor.fetchone()
@@ -12,7 +11,7 @@ def tiene_visita_abierta(id_persona):
 
 
 def insertar_visita(id_persona, id_usuario_entrada, id_autorizador, fecha_visita, hora_entrada_visita, fotografia_entrada_visita, tipo_entrada_visita, autorizador_nombre_copiado):
-    conexion = sqlite3.connect(BD_PATH)
+    conexion = obtener_conexion()
     cursor = conexion.cursor()
     cursor.execute("""
     INSERT INTO visita(
@@ -42,7 +41,7 @@ def insertar_visita(id_persona, id_usuario_entrada, id_autorizador, fecha_visita
 
 
 def obtener_visita_abierta(id_persona):
-    conexion = sqlite3.connect(BD_PATH)
+    conexion = obtener_conexion()
     cursor = conexion.cursor()
     cursor.execute("SELECT id_visita FROM visita WHERE id_persona = ? AND hora_salida_visita IS NULL", (id_persona,))
     resultado = cursor.fetchone()
@@ -51,7 +50,7 @@ def obtener_visita_abierta(id_persona):
 
 
 def cerrar_visita(id_visita, hora_salida_visita, fotografia_salida_visita, id_usuario_salida):
-    conexion = sqlite3.connect(BD_PATH)
+    conexion = obtener_conexion()
     cursor = conexion.cursor()
     cursor.execute("UPDATE visita SET hora_salida_visita = ?, fotografia_salida_visita = ?, id_usuario_salida = ? WHERE id_visita = ?",
                    (hora_salida_visita, fotografia_salida_visita, id_usuario_salida, id_visita))
@@ -62,7 +61,7 @@ def cerrar_visita(id_visita, hora_salida_visita, fotografia_salida_visita, id_us
 
 
 def obtener_visitas_abiertas():
-    conexion = sqlite3.connect(BD_PATH)
+    conexion = obtener_conexion()
     cursor = conexion.cursor()
     cursor.execute("""
         SELECT v.id_visita, p.nombre_persona, v.fecha_visita, v.hora_entrada_visita
@@ -75,15 +74,18 @@ def obtener_visitas_abiertas():
 
 
 def obtener_todas_las_visitas():
-    conexion = sqlite3.connect(BD_PATH)
+    conexion = obtener_conexion()
     cursor = conexion.cursor()
     cursor.execute("""
-        SELECT v.id_visita, v.fecha_visita, p.nombre_persona, 
+        SELECT v.id_visita, v.fecha_visita, p.nombre_persona, p.tipo_persona, 
                v.hora_entrada_visita, v.hora_salida_visita, 
-               v.tipo_entrada_visita, v.autorizador_nombre_copiado
+               v.tipo_entrada_visita, v.autorizador_nombre_copiado,
+               ue.nombre_usuario, us.nombre_usuario
         FROM visita v
         JOIN persona p ON v.id_persona = p.id_persona
-        ORDER BY v.id_visita ASC
+        JOIN usuario ue ON v.id_usuario_entrada = ue.id_usuario
+        LEFT JOIN usuario us ON v.id_usuario_salida = us.id_usuario
+        ORDER BY v.id_visita DESC
     """)
     resultado = cursor.fetchall()
     conexion.close()

@@ -9,7 +9,7 @@ from api.seguridad import crear_token
 from fastapi import Depends
 from api.seguridad import verificar_sesion
 from fastapi.staticfiles import StaticFiles
-
+from datos.auditoria_datos import obtener_toda_la_auditoria
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="api/static"), name="static")
@@ -61,3 +61,9 @@ def login(datos: LoginDatos):
 
     token = crear_token({"id_usuario": usuario[0], "username": datos.username, "rol": rol})
     return {"token": token}
+
+
+@app.get("/auditoria")
+def ver_auditoria(sesion: dict = Depends(verificar_sesion)):
+    registros = obtener_toda_la_auditoria()
+    return {"auditoria": registros}

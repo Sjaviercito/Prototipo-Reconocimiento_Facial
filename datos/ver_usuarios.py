@@ -9,19 +9,7 @@ cursor = conexion.cursor()
 
 cursor.execute("select * from usuario")
 usuarios = cursor.fetchall()
-cursor.execute("select * from autorizador")
-autorizadores = cursor.fetchall()
-cursor.execute("select id_persona, nombre_persona, LENGTH(rostro_embedding_persona) from persona")
-personas = cursor.fetchall()
-cursor.execute("select * from visita")
-visitas = cursor.fetchall()
 for usuario in usuarios:
     print(usuario)
-for autorizador in autorizadores:
-    print(autorizador)
-for persona in personas:
-    print(persona)
-for visita in visitas:
-    print(visita)
 
 conexion.close()

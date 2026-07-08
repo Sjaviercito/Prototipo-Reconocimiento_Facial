@@ -8,7 +8,8 @@ from vision.antispoofing import cargar_modelo, es_cara_real
 from config import MODELO_ANTISPOOF_PATH, CARAS_DIR
 
 nombre = input("Nombre de la persona: ")
-departamento = input("Departamento / proveedor: ")
+departamento = input("Departamento / Proveedor: ")
+tipo = input("Tipo (gobierno/proveedor): ")
 id_autorizador = int(input("ID autorizador: "))
 correo = input("Correo: ")
 telefono = input("Teléfono: ")
@@ -118,6 +119,7 @@ else:
     id_persona = insertar_persona(
         nombre_persona=nombre,
         departamento_proveedor_persona=departamento,
+        tipo_persona=tipo,
         id_autorizador=id_autorizador,
         emb_blob=emb_blob,
         correo_persona=correo,

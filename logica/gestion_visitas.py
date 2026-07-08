@@ -10,7 +10,7 @@ def registrar_entrada(id_persona, id_usuario_entrada, fotografia_entrada_visita,
     # obtener persona
     persona = obtener_persona(id_persona)
     # autorizador
-    autorizador_id = persona[3]  # Suponiendo que el id_autorizador está en la cuarta columna
+    autorizador_id = persona[4]  # Suponiendo que el id_autorizador está en la cuarta columna
     autorizador = obtener_autorizador(autorizador_id)
     autorizador_nombre = autorizador[1]  # Suponiendo que el nombre del autorizador está en la segunda columna
     autorizador_nombre_copiado = autorizador_nombre  # Copiando el nombre del autorizador

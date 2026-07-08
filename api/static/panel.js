@@ -45,13 +45,47 @@ async function cargarHistorial() {
             <td>${v[1]}</td>
             <td>${v[2]}</td>
             <td>${v[3]}</td>
-            <td>${v[4] || '—'}</td>
-            <td>${v[5]}</td>
+            <td>${v[4]}</td>
+            <td>${v[5] || '—'}</td>
             <td>${v[6]}</td>
+            <td>${v[7]}</td>
+            <td>${v[8]}</td>
+            <td>${v[9] || '—'}</td>
         `;
         tbody.appendChild(fila);
     }
 }
-
+async function cargarAuditoria() {
+    const respuesta = await fetch('/auditoria', {
+        headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (respuesta.status === 401) {
+        window.location.href = '/login-page';
+        return;
+    }
+    const datos = await respuesta.json();
+    const tbody = document.getElementById('tabla-auditoria');
+    tbody.innerHTML = '';
+    for (const a of datos.auditoria) {
+        const fila = document.createElement('tr');
+        fila.innerHTML = `
+            <td>${a[0]}</td>
+            <td>${a[1]}</td>
+            <td>${a[2]}</td>
+            <td>${a[3]}</td>
+            <td>${a[4]}</td>
+            <td>${a[5]}</td>
+            <td>${a[6]}</td>
+        `;
+        tbody.appendChild(fila);
+    }
+}
+async function actualizar_todo() {
+    cargarAdentro();
+    cargarAuditoria();
+    cargarHistorial();
+    
+}
+cargarAuditoria();
 cargarAdentro();
 cargarHistorial();
