@@ -12,17 +12,22 @@ from datetime import datetime
 from datos.visita_datos import tiene_visita_abierta
 from vision.login_operador import login_operador
 from logica.gestion_reglamento import persona_puede_entrar
+from datos.firma_datos import insertar_firma
+
 
 session_spoof, input_name_spoof = cargar_modelo(MODELO_ANTISPOOF_PATH)
 
 rostros_bd = obtener_todos_los_rostros()
 rostros = []
+
 for id_persona, blob in rostros_bd:
     embedding = np.frombuffer(blob, dtype=np.float32)
     rostros.append((id_persona, embedding))
 
-app = FaceAnalysis(allowed_modules=['detection','recognition'])
+
+app = FaceAnalysis(allowed_modules=['detection', 'recognition'])
 app.prepare(ctx_id=-1, det_size=(320, 320))
+
 
 id_usuario_actual = login_operador()
 
@@ -31,33 +36,48 @@ if id_usuario_actual is None:
     exit()
 
 print(f"Sesión iniciada. Operador ID: {id_usuario_actual}")
-cap = cv2.VideoCapture(0) #Abrir la camara y guardar lo que captura en cap
+
+
+cap = cv2.VideoCapture(0)
+
 contador = 0
 n = 5
 ultimas_caras = []
 id_reconocido = None
 bbox_reconocido = None
+
+
 while True:
     ret, frame = cap.read()
+
     if not ret:
-        print(f"No se puede capturar nada")
+        print("No se puede capturar nada")
         break
+
     contador += 1
+
     if contador % n == 0:
         faces = app.get(frame)
         ultimas_caras = []
         id_reconocido = None
         bbox_reconocido = None
+
         for face in faces:
             x1, y1, x2, y2 = face.bbox.astype(int)
-            emb_vivo = face.embedding
+            emb_vivo = face.embedding.astype(np.float32)
+
             mejor_id = None
             mejor_similitud = -1
-            for id_persona, emb_guardado in rostros: 
-                similitud = np.dot(emb_vivo, emb_guardado) / (np.linalg.norm(emb_vivo) * np.linalg.norm(emb_guardado))
+
+            for id_persona, emb_guardado in rostros:
+                similitud = np.dot(emb_vivo, emb_guardado) / (
+                    np.linalg.norm(emb_vivo) * np.linalg.norm(emb_guardado)
+                )
+
                 if similitud > mejor_similitud:
                     mejor_similitud = similitud
                     mejor_id = id_persona
+
             if mejor_similitud > 0.6:
                 id_reconocido = mejor_id
                 bbox_reconocido = face.bbox
@@ -65,79 +85,128 @@ while True:
             else:
                 id_reconocido = None
                 texto = "Desconocido"
+
             ultimas_caras.append((x1, y1, x2, y2, texto))
-    for (x1, y1, x2, y2, texto) in ultimas_caras:     
+
+    for (x1, y1, x2, y2, texto) in ultimas_caras:
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-        cv2.putText(frame, "e: entrada | s: salida | c: cerrar sesion | q: salir", (10,30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)        
+        cv2.putText(
+            frame,
+            texto,
+            (x1, y1 - 10),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.7,
+            (0, 255, 0),
+            2
+        )
+
+    cv2.putText(
+        frame,
+        "e: entrada | s: salida | c: cerrar sesion | q: salir",
+        (10, 30),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.7,
+        (0, 255, 0),
+        2
+    )
+
     cv2.imshow('Rostros Detectados', frame)
+
     tecla = cv2.waitKey(1)
+
     if tecla == ord('q'):
         break
+
+    # =========================
+    # REGISTRAR ENTRADA
+    # =========================
     if tecla == ord('e'):
         if id_reconocido is not None:
             if es_cara_real(frame, bbox_reconocido, session_spoof, input_name_spoof):
                 verificacion = persona_puede_entrar(id_reconocido)
+
                 if verificacion["estado"] == "sin_reglamento":
-                    print("No hay reglamento vigente. Avisar Al administrador")
+                    print("No hay reglamento vigente. Avisar al administrador.")
+
                 elif verificacion["estado"] == "no_acepto":
-                    print(f"El visitante no ha aceptado el reglamento {verificacion['reglamento'][2]}")
+                    reglamento = verificacion["reglamento"]
+                    id_reglamento = reglamento[0]
+                    nombre_reglamento = reglamento[2]
+
+                    print(f"El visitante no ha aceptado el reglamento vigente: {nombre_reglamento}")
+                    print("Pregunta al visitante si acepta el reglamento.")
+
+                    aceptar = input("¿El visitante acepta el reglamento? Escribe SI para aceptar: ")
+
+                    if aceptar == "SI":
+                        id_firma = insertar_firma(
+                            id_persona=id_reconocido,
+                            id_reglamento=id_reglamento,
+                            tipo_firma="aceptacion_presencial",
+                            id_usuario=id_usuario_actual,
+                            ruta_firma=None
+                        )
+
+                        print(f"Reglamento aceptado correctamente. ID firma: {id_firma}")
+                        print("Ahora vuelve a presionar 'e' para registrar la entrada.")
+                    else:
+                        print("El visitante no aceptó el reglamento. No se registra entrada.")
+
                 else:
                     if tiene_visita_abierta(id_reconocido):
-                        print("La persona ya tiene una visita abierta. No se guarda registro")
+                        print("La persona ya tiene una visita abierta. No se guarda registro.")
                     else:
                         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                         nombre_foto = f"entrada_persona_{id_reconocido}_{timestamp}.jpg"
                         ruta_foto = guardar_foto(frame, ENTRADAS_DIR, nombre_foto)
+
                         resultado = registrar_entrada(
                             id_persona=id_reconocido,
-                            id_usuario_entrada = id_usuario_actual,
-                            fotografia_entrada_visita = ruta_foto,
-                            tipo_entrada_visita = "facial"
-                    )
-                        print("Registro: ", resultado)
-            else: 
+                            id_usuario_entrada=id_usuario_actual,
+                            fotografia_entrada_visita=ruta_foto,
+                            tipo_entrada_visita="facial"
+                        )
+
+                        print("Registro:", resultado)
+
+            else:
                 print("SPOOF detectado - no se puede realizar el registro")
         else:
-            print("No hay persona reconocida para registrar")
+            print("No hay persona reconocida para registrar entrada")
+
+    # =========================
+    # REGISTRAR SALIDA
+    # =========================
     if tecla == ord('s'):
-            if id_reconocido is not None:
-                if es_cara_real(frame, bbox_reconocido, session_spoof, input_name_spoof):
-                    if not tiene_visita_abierta(id_reconocido):
-                        print("La persona no tiene visita abierta. NO se registra nada")
-                    else:
-                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                        nombre_foto = f"salida_persona_{id_reconocido}_{timestamp}.jpg"
-                        ruta_foto = guardar_foto(frame, SALIDAS_DIR, nombre_foto)
-                        resultado = registrar_salida(
-                            id_persona = id_reconocido,
-                            id_usuario_salida = id_usuario_actual,
-                            fotografia_salida_visita=ruta_foto
-                    )
-                        print("Salida:  ", resultado)
+        if id_reconocido is not None:
+            if es_cara_real(frame, bbox_reconocido, session_spoof, input_name_spoof):
+                if not tiene_visita_abierta(id_reconocido):
+                    print("La persona no tiene visita abierta. No se registra nada.")
                 else:
-                    print("SPOOF detectado - no se puede registrar la salida")
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    nombre_foto = f"salida_persona_{id_reconocido}_{timestamp}.jpg"
+                    ruta_foto = guardar_foto(frame, SALIDAS_DIR, nombre_foto)
+
+                    resultado = registrar_salida(
+                        id_persona=id_reconocido,
+                        id_usuario_salida=id_usuario_actual,
+                        fotografia_salida_visita=ruta_foto
+                    )
+
+                    print("Salida:", resultado)
+
             else:
-                print("No hay persona reconocida para registrar salida")
+                print("SPOOF detectado - no se puede registrar la salida")
+        else:
+            print("No hay persona reconocida para registrar salida")
+
+    # =========================
+    # CERRAR SESIÓN
+    # =========================
     if tecla == ord('c'):
         print("Sesión cerrada.")
         break
+
+
 cap.release()
 cv2.destroyAllWindows()
-
-
-        
-        
-        
-    
-
-
-
-
-
-
-
-        
-
-
-
-

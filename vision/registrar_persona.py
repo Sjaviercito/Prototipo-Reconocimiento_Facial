@@ -5,7 +5,8 @@ import numpy as np
 from insightface.app import FaceAnalysis
 from datos.persona_datos import insertar_persona
 from vision.antispoofing import cargar_modelo, es_cara_real
-from config import MODELO_ANTISPOOF_PATH, CARAS_DIR
+from config import MODELO_ANTISPOOF_PATH, CARAS_DIR, INE_DIR
+from datetime import datetime
 
 nombre = input("Nombre de la persona: ")
 departamento = input("Departamento / Proveedor: ")
@@ -15,7 +16,7 @@ correo = input("Correo: ")
 telefono = input("Teléfono: ")
 
 ruta_firma = "pendiente"
-ruta_ine = "pendiente"
+ruta_ine = None
 
 carpeta_persona = os.path.join(CARAS_DIR, "personas", nombre)
 os.makedirs(carpeta_persona, exist_ok=True)
@@ -89,6 +90,48 @@ cv2.destroyAllWindows()
 if fotos_tomadas < total_fotos:
         print("Registro cancelado. No se tomaron todas las fotos necesarias.")
         exit()
+print("Ahora se tomará foto de la INE.")
+print("Coloca la INE frente a la cámara y presiona 'i' para capturar. Presiona 'q' para cancelar.")
+cap_ine = cv2.VideoCapture(0)
+while True:
+    ret, frame_ine = cap_ine.read()
+
+    if not ret:
+        print("No se puede capturar la INE.")
+        break
+
+    cv2.putText(
+        frame_ine,
+        "Presiona 'i' para capturar INE | 'q' para cancelar",
+        (10, 30),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.7,
+        (0, 255, 0),
+        2
+    )
+
+    cv2.imshow("Captura INE", frame_ine)
+
+    tecla = cv2.waitKey(1)
+
+    if tecla == ord('q'):
+        print("Captura de INE cancelada.")
+        cap_ine.release()
+        cv2.destroyAllWindows()
+        exit()
+
+    if tecla == ord('i'):
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        nombre_archivo_ine = f"ine_{nombre}_{timestamp}.jpg"
+        ruta_ine = os.path.join(INE_DIR, nombre_archivo_ine)
+
+        cv2.imwrite(ruta_ine, frame_ine)
+
+        print(f"INE guardada en: {ruta_ine}")
+        break
+
+cap_ine.release()
+cv2.destroyAllWindows()
 embeddings = []
 
 for archivo in os.listdir(carpeta_persona):
