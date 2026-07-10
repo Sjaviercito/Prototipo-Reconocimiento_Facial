@@ -12,7 +12,7 @@ from datetime import datetime
 from datos.visita_datos import tiene_visita_abierta
 from vision.login_operador import login_operador
 from logica.gestion_reglamento import persona_puede_entrar
-from datos.firma_datos import insertar_firma
+from logica.gestion_reglamento import registrar_aceptacion
 
 
 session_spoof, input_name_spoof = cargar_modelo(MODELO_ANTISPOOF_PATH)
@@ -46,7 +46,22 @@ ultimas_caras = []
 id_reconocido = None
 bbox_reconocido = None
 
-
+def hacer_registro_entrada(frame, id_reconocido, id_usuario_actual):
+    if tiene_visita_abierta(id_reconocido):
+        print("La persona ya tiene una visita abierta. No se guarda registro.")
+        return
+    
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    nombre_foto = f"entrada_persona_{id_reconocido}_{timestamp}.jpg"
+    ruta_foto = guardar_foto(frame, ENTRADAS_DIR, nombre_foto)
+    
+    resultado = registrar_entrada(
+        id_persona=id_reconocido,
+        id_usuario_entrada=id_usuario_actual,
+        fotografia_entrada_visita=ruta_foto,
+        tipo_entrada_visita="facial"
+    )
+    print("Registro:", resultado)
 while True:
     ret, frame = cap.read()
 
@@ -137,38 +152,15 @@ while True:
                     print("Pregunta al visitante si acepta el reglamento.")
 
                     aceptar = input("¿El visitante acepta el reglamento? Escribe SI para aceptar: ")
-
                     if aceptar == "SI":
-                        id_firma = insertar_firma(
-                            id_persona=id_reconocido,
-                            id_reglamento=id_reglamento,
-                            tipo_firma="aceptacion_presencial",
-                            id_usuario=id_usuario_actual,
-                            ruta_firma=None
-                        )
-
-                        print(f"Reglamento aceptado correctamente. ID firma: {id_firma}")
-                        print("Ahora vuelve a presionar 'e' para registrar la entrada.")
+                        id_firma = registrar_aceptacion(id_reconocido, id_reglamento, id_usuario_actual)
+                        print(f"Reglamento aceptado. ID firma: {id_firma}")
+                        hacer_registro_entrada(frame, id_reconocido, id_usuario_actual)   # ← registro automático
                     else:
                         print("El visitante no aceptó el reglamento. No se registra entrada.")
 
-                else:
-                    if tiene_visita_abierta(id_reconocido):
-                        print("La persona ya tiene una visita abierta. No se guarda registro.")
-                    else:
-                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                        nombre_foto = f"entrada_persona_{id_reconocido}_{timestamp}.jpg"
-                        ruta_foto = guardar_foto(frame, ENTRADAS_DIR, nombre_foto)
-
-                        resultado = registrar_entrada(
-                            id_persona=id_reconocido,
-                            id_usuario_entrada=id_usuario_actual,
-                            fotografia_entrada_visita=ruta_foto,
-                            tipo_entrada_visita="facial"
-                        )
-
-                        print("Registro:", resultado)
-
+                else:         
+                    hacer_registro_entrada(frame, id_reconocido, id_usuario_actual)
             else:
                 print("SPOOF detectado - no se puede realizar el registro")
         else:

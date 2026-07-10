@@ -11,6 +11,8 @@ __pycache__/
 data/
 caras/
 *.pkl
+documentos/
+evidencias
 
 # Modelos descargados (pesados, se bajan solos)
 *.onnx
