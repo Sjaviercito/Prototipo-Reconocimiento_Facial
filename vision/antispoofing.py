@@ -53,7 +53,7 @@ def es_cara_real(frame, bbox, session, input_name, umbral=0.0):
     crop = recortar_cara(frame, bbox)
     crop_preprocesado = preprocesar(crop)
     crop_predecir = predecir(session, input_name, crop_preprocesado)
-    crop_es_real = es_real(crop_predecir, 0.0)
+    crop_es_real = es_real(crop_predecir, umbral)
     return crop_es_real
 
 

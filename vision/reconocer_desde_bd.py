@@ -11,6 +11,7 @@ from config import SALIDAS_DIR
 from datetime import datetime
 from datos.visita_datos import tiene_visita_abierta
 from vision.login_operador import login_operador
+from logica.gestion_reglamento import persona_puede_entrar
 
 session_spoof, input_name_spoof = cargar_modelo(MODELO_ANTISPOOF_PATH)
 
@@ -75,19 +76,25 @@ while True:
     if tecla == ord('e'):
         if id_reconocido is not None:
             if es_cara_real(frame, bbox_reconocido, session_spoof, input_name_spoof):
-                if tiene_visita_abierta(id_reconocido):
-                    print("La persona ya tiene una visita abierta. No se guarda registro")
+                verificacion = persona_puede_entrar(id_reconocido)
+                if verificacion["estado"] == "sin_reglamento":
+                    print("No hay reglamento vigente. Avisar Al administrador")
+                elif verificacion["estado"] == "no_acepto":
+                    print(f"El visitante no ha aceptado el reglamento {verificacion['reglamento'][2]}")
                 else:
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    nombre_foto = f"entrada_persona_{id_reconocido}_{timestamp}.jpg"
-                    ruta_foto = guardar_foto(frame, ENTRADAS_DIR, nombre_foto)
-                    resultado = registrar_entrada(
-                        id_persona=id_reconocido,
-                        id_usuario_entrada = id_usuario_actual,
-                        fotografia_entrada_visita = ruta_foto,
-                        tipo_entrada_visita = "facial"
-                )
-                    print("Registro: ", resultado)
+                    if tiene_visita_abierta(id_reconocido):
+                        print("La persona ya tiene una visita abierta. No se guarda registro")
+                    else:
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        nombre_foto = f"entrada_persona_{id_reconocido}_{timestamp}.jpg"
+                        ruta_foto = guardar_foto(frame, ENTRADAS_DIR, nombre_foto)
+                        resultado = registrar_entrada(
+                            id_persona=id_reconocido,
+                            id_usuario_entrada = id_usuario_actual,
+                            fotografia_entrada_visita = ruta_foto,
+                            tipo_entrada_visita = "facial"
+                    )
+                        print("Registro: ", resultado)
             else: 
                 print("SPOOF detectado - no se puede realizar el registro")
         else:
@@ -114,6 +121,8 @@ while True:
     if tecla == ord('c'):
         print("Sesión cerrada.")
         break
+cap.release()
+cv2.destroyAllWindows()
 
 
         

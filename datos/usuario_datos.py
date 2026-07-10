@@ -1,11 +1,7 @@
-import sqlite3
-from config import BD_PATH
-
-
-
+from datos.conexion import obtener_conexion
 
 def insertar_usuario(nombre, rol, username, correo, contrasena_hash, pin_hash_usuario, rostro_embedding = None  ):
-    conexion = sqlite3.connect(BD_PATH)
+    conexion = obtener_conexion()
     cursor = conexion.cursor()
     cursor.execute("""
         INSERT INTO usuario(
@@ -23,7 +19,7 @@ def insertar_usuario(nombre, rol, username, correo, contrasena_hash, pin_hash_us
     return id_usuario
 
 def obtener_usuario(id_usuario):
-    conexion = sqlite3.connect(BD_PATH)
+    conexion = obtener_conexion()
     cursor = conexion.cursor()
     cursor.execute("SELECT * FROM usuario WHERE id_usuario = ?", (id_usuario,))
     resultado = cursor.fetchone()
@@ -31,7 +27,7 @@ def obtener_usuario(id_usuario):
     return resultado
 
 def obtener_usuario_por_username(username):
-    conexion = sqlite3.connect(BD_PATH)
+    conexion = obtener_conexion()
     cursor = conexion.cursor()
     cursor.execute("SELECT * FROM usuario WHERE username_usuario = ?", (username,))
     resultado = cursor.fetchone()

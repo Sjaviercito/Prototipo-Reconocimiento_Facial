@@ -9,7 +9,7 @@ def obtener_firma(id_persona, id_reglamento):
     conexion.close()
     return filas
 
-def insertar_firma(id_persona ,id_reglamento ,ruta_firma ,id_usuario):
+def insertar_firma(id_persona ,id_reglamento, tipo_firma ,id_usuario, ruta_firma = None):
     conexion = obtener_conexion()
     cursor = conexion.cursor()
     fecha_firma = datetime.now().strftime("%Y-%m-%d")
@@ -20,10 +20,11 @@ def insertar_firma(id_persona ,id_reglamento ,ruta_firma ,id_usuario):
                        id_reglamento, 
                        fecha_firma, 
                        hora_firma ,
+                       tipo_firma,
                        ruta_firma ,
                        id_usuario)
-                       VALUES (?, ?, ?, ?, ?, ?)""",
-                       (id_persona ,id_reglamento, fecha_firma, hora_firma ,ruta_firma ,id_usuario))
+                       VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                       (id_persona ,id_reglamento, fecha_firma, hora_firma  , tipo_firma,ruta_firma, id_usuario, ))
     conexion.commit()
     id_firma = cursor.lastrowid
     conexion.close()

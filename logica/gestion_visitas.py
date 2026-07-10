@@ -22,7 +22,7 @@ def registrar_entrada(id_persona, id_usuario_entrada, fotografia_entrada_visita,
         id_autorizador=autorizador_id,
         fecha_visita=datetime.now().strftime("%Y-%m-%d"),
         hora_entrada_visita=datetime.now().strftime("%H:%M:%S"),
-        fotografia_entrada_visita=tipo_entrada_visita,
+        fotografia_entrada_visita=fotografia_entrada_visita,
         tipo_entrada_visita=tipo_entrada_visita,
         autorizador_nombre_copiado=autorizador_nombre_copiado  # Copiando el nombre del autorizador
     )

@@ -86,6 +86,10 @@ async function actualizar_todo() {
     cargarHistorial();
     
 }
+function cerrarSesion() {
+    localStorage.removeItem('token');
+    window.location.href = '/login-page';
+}
 cargarAuditoria();
 cargarAdentro();
 cargarHistorial();

@@ -35,8 +35,8 @@ CREATE TABLE IF NOT EXISTS persona (
     id_autorizador INTEGER,
     rostro_embedding_persona BLOB NOT NULL,
     correo_persona TEXT NOT NULL,
-    firma_persona BLOB NOT NULL,
-    ine_persona BLOB NOT NULL,
+    firma_persona TEXT NOT NULL,
+    ine_persona TEXT NOT NULL,
     telefono_persona TEXT NOT NULL,
     FOREIGN KEY (id_autorizador) REFERENCES autorizador(id_autorizador)
 
@@ -83,13 +83,25 @@ CREATE TABLE IF NOT EXISTS firma(
     id_reglamento INTEGER NOT NULL,
     fecha_firma TEXT NOT NULL,
     hora_firma TEXT NOT NULL,
-    ruta_firma TEXT NOT NULL,
+    tipo_firma TEXT NOT NULL,
+    ruta_firma TEXT,
     id_usuario INTEGER NOT NULL,
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
     FOREIGN KEY (id_persona) REFERENCES persona(id_persona),
     FOREIGN KEY (id_reglamento) REFERENCES reglamento(id_reglamento)
 );
+CREATE TABLE IF NOT EXISTS correo_pendiente(
+    id_correo_pendiente INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_persona INTEGER NOT NULL,
+    id_reglamento INTEGER NOT NULL,
+    fecha_fallo_correo_pendiente TEXT NOT NULL,
+    hora_fallo_correo_pendiente TEXT NOT NULL,
+    error_correo_pendiente TEXT NOT NULL,
+    intentos_correo_pendiente INTEGER NOT NULL,
+    FOREIGN KEY (id_persona) REFERENCES persona(id_persona),
+    FOREIGN KEY (id_reglamento) REFERENCES reglamento(id_reglamento)  
 
+);
     """)
 
 

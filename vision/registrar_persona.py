@@ -14,8 +14,8 @@ id_autorizador = int(input("ID autorizador: "))
 correo = input("Correo: ")
 telefono = input("Teléfono: ")
 
-firma_bytes = b"firma_pendiente"
-ine_bytes = b"ine_pendiente"
+ruta_firma = "pendiente"
+ruta_ine = "pendiente"
 
 carpeta_persona = os.path.join(CARAS_DIR, "personas", nombre)
 os.makedirs(carpeta_persona, exist_ok=True)
@@ -123,8 +123,8 @@ else:
         id_autorizador=id_autorizador,
         emb_blob=emb_blob,
         correo_persona=correo,
-        firma_bytes=firma_bytes,
-        ine_bytes=ine_bytes,
+        ruta_firma=ruta_firma,
+        ruta_ine=ruta_ine,
         telefono_persona=telefono
     )
 

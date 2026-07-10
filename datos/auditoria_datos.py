@@ -1,9 +1,8 @@
-import sqlite3
+from datos.conexion import obtener_conexion
 from datetime import datetime
-from config import BD_PATH
 
 def insertar_auditoria(id_usuario, accion, tabla_afectada, id_registro_afectado):
-    conexion = sqlite3.connect(BD_PATH)
+    conexion = obtener_conexion()
     cursor = conexion.cursor()
     fecha_auditoria = datetime.now().strftime("%Y-%m-%d")
     hora_auditoria = datetime.now().strftime("%H:%M:%S")
@@ -30,7 +29,7 @@ def insertar_auditoria(id_usuario, accion, tabla_afectada, id_registro_afectado)
     return id_auditoria
 
 def obtener_toda_la_auditoria():
-    conexion = sqlite3.connect(BD_PATH)
+    conexion = obtener_conexion()
     cursor = conexion.cursor()
     cursor.execute("""
         SELECT a.id_auditoria, u.nombre_usuario, a.fecha_auditoria, a.hora_auditoria,
