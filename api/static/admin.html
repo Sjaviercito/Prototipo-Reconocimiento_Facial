@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Bitácora SITE</title>
+    <link rel="stylesheet" href="/static/admin.css">
+</head>
+<body>
+    <h1>PANEL ADMIN / DESARROLLO</h1>
+
+<p>Herramienta interna para desarrollo. No usar en producción.</p>
+
+<button onclick="cargarBD()">Cargar tablas</button>
+<button onclick="reiniciarBD()" style="background: darkred; color: white;">
+    Reiniciar base de datos
+</button>
+
+<div id="contenedor-bd"></div>
+    
+    <script src="/static/admin.js?v=2"></script>
+</body>
+</html>

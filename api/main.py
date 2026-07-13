@@ -15,8 +15,14 @@ from datetime import datetime
 from fastapi import UploadFile, File, Form
 from config import REGLAMENTOS_DIR
 import os
+from datos.usuario_datos import obtener_todos_los_usuarios
+from datos.admin_bd_datos import obtener_todas_las_tablas_con_registros, reiniciar_base_de_datos
+from vision.captura_operador import CapturaOperadorUI
+from datos.usuario_datos import insertar_usuario
+
 
 app = FastAPI()
+captura_operador_ui = CapturaOperadorUI()
 app.mount("/static", StaticFiles(directory="api/static"), name="static")
 
 
@@ -36,8 +42,6 @@ def login_page():
     with open("api/static/login.html", "r", encoding="utf-8") as f:
         return f.read()
 
-
-
 @app.get("/", response_class=HTMLResponse)
 def panel():
     with open("api/static/panel.html", "r", encoding="utf-8") as f:
@@ -50,22 +54,27 @@ class LoginDatos(BaseModel):
 @app.post("/login")
 def login(datos: LoginDatos):
     usuario = obtener_usuario_por_username(datos.username)
+
     if usuario is None:
         raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos")
 
-    # el hash está en la columna contrasena_usuario (posición según tu tabla)
-    hash_guardado = usuario[6]   # ajusta el índice a tu columna de contraseña
+    hash_guardado = usuario[6]
 
     if not bcrypt.checkpw(datos.password.encode("utf-8"), hash_guardado.encode("utf-8")):
         raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos")
 
-    # verificar que sea admin (solo admins entran al panel)
-    rol = usuario[2]   # ajusta el índice a tu columna de rol
-    if rol != "admin":
-        raise HTTPException(status_code=403, detail="No tienes permiso para acceder al panel")
+    rol = usuario[2]
 
-    token = crear_token({"id_usuario": usuario[0], "username": datos.username, "rol": rol})
-    return {"token": token}
+    token = crear_token({
+        "id_usuario": usuario[0],
+        "username": datos.username,
+        "rol": rol
+    })
+
+    return {
+        "token": token,
+        "rol": rol
+    }
 
 
 @app.get("/auditoria")
@@ -127,4 +136,114 @@ async def subir_reglamento(
         "id_reglamento": id_reglamento,
         "nombre_version": nombre_version,
         "ruta_pdf": ruta_relativa
+    }
+@app.get("/admin", response_class=HTMLResponse)
+def admin_page():
+    with open("api/static/admin.html", "r", encoding="utf-8") as f:
+        return f.read()
+    
+@app.get("/usuarios")
+def ver_usuarios(sesion: dict = Depends(verificar_sesion)):
+    usuarios = obtener_todos_los_usuarios()
+    return {"usuarios": usuarios}
+@app.get("/admin/bd")
+def ver_base_de_datos(sesion: dict = Depends(verificar_sesion)):
+    if sesion["rol"] != "admin":
+        raise HTTPException(status_code=403, detail="Solo admin")
+
+    tablas = obtener_todas_las_tablas_con_registros()
+    return {"tablas": tablas}
+
+
+@app.delete("/admin/bd")
+def reiniciar_bd(sesion: dict = Depends(verificar_sesion)):
+    if os.getenv("MODO_DEV") != "true":
+        raise HTTPException(status_code=403, detail="Operación no permitida en producción")
+    
+    if sesion["rol"] != "admin":
+        raise HTTPException(status_code=403, detail="Solo admin")
+    
+    reiniciar_base_de_datos()
+    return {"mensaje": "Base de datos reiniciada correctamente"}
+
+@app.get("/setup/operadores", response_class=HTMLResponse)
+def setup_operadores_page():
+    with open("api/static/setup_operadores.html", "r", encoding="utf-8") as f:
+        return f.read()
+    
+@app.post("/setup/operadores/camara/iniciar")
+def iniciar_camara_operador(sesion: dict = Depends(verificar_sesion)):
+    if sesion["rol"] != "admin":
+        raise HTTPException(status_code=403, detail="Solo admin puede registrar operadores")
+
+    resultado = captura_operador_ui.iniciar()
+
+    print("RESULTADO INICIAR CAMARA:", resultado)
+
+    if not resultado["ok"]:
+        raise HTTPException(status_code=400, detail=resultado["mensaje"])
+
+    return resultado
+
+@app.post("/setup/operadores/camara/rostro")
+def tomar_rostro_operador(
+    nombre_operador: str = Form(...),
+    sesion: dict = Depends(verificar_sesion)
+):
+    if sesion["rol"] != "admin":
+        raise HTTPException(status_code=403, detail="Solo admin puede registrar operadores")
+
+    resultado = captura_operador_ui.tomar_foto_rostro(nombre_operador)
+
+    if not resultado["ok"]:
+        raise HTTPException(status_code=400, detail=resultado["mensaje"])
+
+    return resultado
+
+@app.post("/setup/operadores/camara/cancelar")
+def cancelar_camara_operador(sesion: dict = Depends(verificar_sesion)):
+    if sesion["rol"] != "admin":
+        raise HTTPException(status_code=403, detail="Solo admin puede registrar operadores")
+
+    return captura_operador_ui.cancelar()
+
+@app.post("/setup/operadores/registrar")
+def registrar_operador_setup(
+    nombre: str = Form(...),
+    rol: str = Form(...),
+    username: str = Form(...),
+    correo: str = Form(...),
+    password: str = Form(...),
+    pin: str = Form(...),
+    sesion: dict = Depends(verificar_sesion)
+):
+    if sesion["rol"] != "admin":
+        raise HTTPException(status_code=403, detail="Solo admin puede registrar operadores")
+
+    if rol not in ["admin", "operador"]:
+        raise HTTPException(status_code=400, detail="Rol inválido")
+
+    embedding_blob = captura_operador_ui.obtener_embedding_promedio_blob()
+
+    if embedding_blob is None:
+        raise HTTPException(status_code=400, detail="Debes capturar 5 fotos de rostro")
+
+    password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    pin_hash = bcrypt.hashpw(pin.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+    id_usuario = insertar_usuario(
+        nombre=nombre,
+        rol=rol,
+        username=username,
+        correo=correo,
+        contrasena_hash=password_hash,
+        pin_hash_usuario=pin_hash,
+        rostro_embedding=embedding_blob
+    )
+
+    captura_operador_ui.cerrar()
+
+    return {
+        "mensaje": "Operador registrado correctamente",
+        "id_usuario": id_usuario
     }

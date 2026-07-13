@@ -12,7 +12,8 @@ data/
 caras/
 *.pkl
 documentos/
-evidencias
+evidencias/
+reglamentos/
 
 # Modelos descargados (pesados, se bajan solos)
 *.onnx

@@ -33,6 +33,14 @@ def obtener_usuario_por_username(username):
     resultado = cursor.fetchone()
     conexion.close()
     return resultado
+
+def obtener_todos_los_usuarios():
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+    cursor.execute("SELECT id_usuario, nombre_usuario, rol_usuario, username_usuario, correo_usuario FROM usuario")
+    resultado = cursor.fetchall()
+    conexion.close()
+    return resultado
     
     
     

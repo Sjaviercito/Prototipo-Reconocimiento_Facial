@@ -8,11 +8,13 @@
 <body>
     <button id="boton-recarga" onclick="actualizar_todo()">Actualizar</button>
     <button onclick="cerrarSesion()">Cerrar sesión</button>
+    <button onclick="window.location.href='/admin'">Panel Admin</button>
     <h2>Subir nuevo reglamento</h2>
 <form id="form-reglamento">
     <input type="text" id="nombre-version" placeholder="Nombre de versión" required>
     <input type="file" id="archivo-reglamento" accept="application/pdf" required>
     <button type="submit">Subir reglamento</button>
+    
 </form>
 
 <p id="mensaje-reglamento"></p>
