@@ -1,9 +1,3 @@
-// Al cargar: verificar que haya token, si no, mandar al login
-const token = localStorage.getItem('token');
-if (!token) {
-    window.location.href = '/login-page';
-}
-
 async function cargarAdentro() {
     const respuesta = await fetch('/adentro', {
         headers: { 'Authorization': 'Bearer ' + token }

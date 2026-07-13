@@ -1,5 +1,5 @@
 from jose import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import Header, HTTPException
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -13,7 +13,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 def crear_token(datos: dict):
     info = datos.copy()
-    expira = datetime.utcnow() + timedelta(minutes=EXPIRACION_MINUTOS)
+    expira = datetime.now(timezone.utc) + timedelta(minutes=EXPIRACION_MINUTOS)
     info.update({"exp": expira})
     token = jwt.encode(info, SECRET_KEY, algorithm=ALGORITHM)
     return token

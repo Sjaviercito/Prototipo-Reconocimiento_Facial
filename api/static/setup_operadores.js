@@ -1,11 +1,5 @@
-const token = localStorage.getItem('token');
 const rolUsuario = localStorage.getItem('rol');
-
 let rostrosCapturados = 0;
-
-if (!token) {
-    window.location.href = '/login-page';
-}
 
 if (rolUsuario !== "admin") {
     alert("Solo admin puede acceder al setup de operadores.");

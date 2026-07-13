@@ -1,8 +1,3 @@
-const token = localStorage.getItem('token');
-
-if (!token) {
-    window.location.href = '/login-page';
-}
 async function cargarBD() {
     const respuesta = await fetch('/admin/bd', {
         headers: { 'Authorization': 'Bearer ' + token }

@@ -10,10 +10,10 @@ def registrar_entrada(id_persona, id_usuario_entrada, fotografia_entrada_visita,
     # obtener persona
     persona = obtener_persona(id_persona)
     # autorizador
-    autorizador_id = persona[4]  # Suponiendo que el id_autorizador está en la cuarta columna
+    autorizador_id = persona[4]
     autorizador = obtener_autorizador(autorizador_id)
-    autorizador_nombre = autorizador[1]  # Suponiendo que el nombre del autorizador está en la segunda columna
-    autorizador_nombre_copiado = autorizador_nombre  # Copiando el nombre del autorizador
+    autorizador_nombre = autorizador[1]  
+    autorizador_nombre_copiado = autorizador_nombre
     
     #visita
     id_visita = insertar_visita(
@@ -34,8 +34,6 @@ def registrar_entrada(id_persona, id_usuario_entrada, fotografia_entrada_visita,
     )
     return id_visita
 
-
-
 def registrar_salida(id_persona, id_usuario_salida, fotografia_salida_visita):
     if not tiene_visita_abierta(id_persona):
         return "No se puede registrar salida. La persona no tiene visita abierta"
@@ -54,10 +52,3 @@ def registrar_salida(id_persona, id_usuario_salida, fotografia_salida_visita):
         return f"Salida registrada. ID VISITA: {id_visita}"
     else:
         return("No se pudo cerrar la visita")
-    
-        
-        
-    
-    
-    
-    

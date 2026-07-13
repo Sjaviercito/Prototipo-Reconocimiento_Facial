@@ -80,8 +80,6 @@ def obtener_todas_las_tablas_con_registros():
 def reiniciar_base_de_datos():
     if os.path.exists(BD_PATH):
         os.remove(BD_PATH)
-
-    import datos.crear_bd
-    importlib.reload(datos.crear_bd)
-
+    from datos.crear_bd import crear_tablas
+    crear_tablas()
     return True
