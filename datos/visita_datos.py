@@ -90,8 +90,8 @@ def obtener_todas_las_visitas():
         cursor.execute("""
             SELECT v.id_visita, v.fecha_visita, p.nombre_persona, p.tipo_persona, 
                 v.hora_entrada_visita, v.hora_salida_visita, 
-                v.tipo_entrada_visita, v.autorizador_nombre_copiado,
-                ue.nombre_usuario, us.nombre_usuario
+                v.tipo_entrada_visita, v.autorizador_nombre_copiado AS autorizador,
+                ue.nombre_usuario AS operador_entrada, us.nombre_usuario AS operador_salida
             FROM visita v
             JOIN persona p ON v.id_persona = p.id_persona
             JOIN usuario ue ON v.id_usuario_entrada = ue.id_usuario

@@ -12,10 +12,10 @@ async function cargarAdentro() {
     for (const visita of datos.adentro) {
         const fila = document.createElement('tr');
         fila.innerHTML = `
-            <td>${visita[0]}</td>
-            <td>${visita[1]}</td>
-            <td>${visita[2]}</td>
-            <td>${visita[3]}</td>
+            <td>${visita.id_visita}</td>
+            <td>${visita.nombre_persona}</td>
+            <td>${visita.fecha_visita}</td>
+            <td>${visita.hora_entrada_visita}</td>
         `;
         tbody.appendChild(fila);
     }
@@ -35,16 +35,16 @@ async function cargarHistorial() {
     for (const v of datos.visitas) {
         const fila = document.createElement('tr');
         fila.innerHTML = `
-            <td>${v[0]}</td>
-            <td>${v[1]}</td>
-            <td>${v[2]}</td>
-            <td>${v[3]}</td>
-            <td>${v[4]}</td>
-            <td>${v[5] || '—'}</td>
-            <td>${v[6]}</td>
-            <td>${v[7]}</td>
-            <td>${v[8]}</td>
-            <td>${v[9] || '—'}</td>
+            <td>${v.id_visita}</td>
+            <td>${v.fecha_visita}</td>
+            <td>${v.nombre_persona}</td>
+            <td>${v.tipo_persona}</td>
+            <td>${v.hora_entrada_visita}</td>
+            <td>${v.hora_salida_visita || '—'}</td>
+            <td>${v.tipo_entrada_visita}</td>
+            <td>${v.autorizador}</td>
+            <td>${v.operador_entrada}</td>
+            <td>${v.operador_salida || '—'}</td>
         `;
         tbody.appendChild(fila);
     }
@@ -63,13 +63,13 @@ async function cargarAuditoria() {
     for (const a of datos.auditoria) {
         const fila = document.createElement('tr');
         fila.innerHTML = `
-            <td>${a[0]}</td>
-            <td>${a[1]}</td>
-            <td>${a[2]}</td>
-            <td>${a[3]}</td>
-            <td>${a[4]}</td>
-            <td>${a[5]}</td>
-            <td>${a[6]}</td>
+            <td>${a.id_auditoria}</td>
+            <td>${a.nombre_usuario}</td>
+            <td>${a.fecha_auditoria}</td>
+            <td>${a.hora_auditoria}</td>
+            <td>${a.accion_auditoria}</td>
+            <td>${a.tabla_afectada_auditoria}</td>
+            <td>${a.id_registro_afectado_auditoria}</td>
         `;
         tbody.appendChild(fila);
     }

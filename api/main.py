@@ -29,13 +29,12 @@ app.mount("/static", StaticFiles(directory="api/static"), name="static")
 @app.get("/adentro")
 def quien_esta_adentro(sesion: dict = Depends(verificar_sesion)):
     visitas = obtener_visitas_abiertas()
-    return {"adentro": visitas}
-
+    return {"adentro": [dict(fila) for fila in visitas]}
 
 @app.get("/visitas")
 def ver_todas_las_visitas(sesion: dict = Depends(verificar_sesion)):
     visitas = obtener_todas_las_visitas()
-    return {"visitas": visitas}
+    return {"visitas": [dict(fila) for fila in visitas]}
 
 @app.get("/login-page", response_class=HTMLResponse)
 def login_page():
@@ -58,15 +57,15 @@ def login(datos: LoginDatos):
     if usuario is None:
         raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos")
 
-    hash_guardado = usuario[6]
+    hash_guardado = usuario["contrasena_usuario"]
 
     if not bcrypt.checkpw(datos.password.encode("utf-8"), hash_guardado.encode("utf-8")):
         raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos")
 
-    rol = usuario[2]
+    rol = usuario["rol_usuario"]
 
     token = crear_token({
-        "id_usuario": usuario[0],
+        "id_usuario": usuario["id_usuario"],
         "username": datos.username,
         "rol": rol
     })
@@ -80,7 +79,7 @@ def login(datos: LoginDatos):
 @app.get("/auditoria")
 def ver_auditoria(sesion: dict = Depends(verificar_sesion)):
     registros = obtener_toda_la_auditoria()
-    return {"auditoria": registros}
+    return {"auditoria": [dict(fila) for fila in registros]}
 
 @app.get("/reglamento-vigente")
 def ver_reglamento_vigente(sesion: dict = Depends(verificar_sesion)):
@@ -145,7 +144,7 @@ def admin_page():
 @app.get("/usuarios")
 def ver_usuarios(sesion: dict = Depends(verificar_sesion)):
     usuarios = obtener_todos_los_usuarios()
-    return {"usuarios": usuarios}
+    return {"usuarios": [dict(fila) for fila in usuarios]}
 @app.get("/admin/bd")
 def ver_base_de_datos(sesion: dict = Depends(verificar_sesion)):
     if sesion["rol"] != "admin":
