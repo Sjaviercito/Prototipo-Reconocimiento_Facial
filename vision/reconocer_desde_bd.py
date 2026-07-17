@@ -46,13 +46,18 @@ id_reconocido = None
 bbox_reconocido = None
 
 def hacer_registro_entrada(frame, id_reconocido, id_usuario_actual):
-    if tiene_visita_abierta(id_reconocido):
-        print("La persona ya tiene una visita abierta. No se guarda registro.")
-        return
-    
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     nombre_foto = f"entrada_persona_{id_reconocido}_{timestamp}.jpg"
     ruta_foto = guardar_foto(frame, ENTRADAS_DIR, nombre_foto)
+    try:
+        id_visita = registrar_entrada(
+            id_persona=id_reconocido,
+            id_usuario_entrada=id_usuario_actual,
+            fotografia_entrada_visita=ruta_foto,
+            tipo_entrada_visita="facial")
+        print(f"Entrada registrada. ID visita: {id_visita}")
+    except ValueError as e:
+        print(f"No se registró: {e}")
     
     resultado = registrar_entrada(
         id_persona=id_reconocido,
@@ -61,14 +66,13 @@ def hacer_registro_entrada(frame, id_reconocido, id_usuario_actual):
         tipo_entrada_visita="facial"
     )
     print("Registro:", resultado)
+
 def procesar_entrada(frame, id_reconocido, bbox_reconocido, id_usuario_actual, session_spoof, input_name_spoof):
     if id_reconocido is not None:
         if es_cara_real(frame, bbox_reconocido, session_spoof, input_name_spoof):
             verificacion = persona_puede_entrar(id_reconocido)
-
             if verificacion["estado"] == "sin_reglamento":
                 print("No hay reglamento vigente. Avisar al administrador.")
-
             elif verificacion["estado"] == "no_acepto":
                 reglamento = verificacion["reglamento"]
                 id_reglamento = reglamento[0]
@@ -91,7 +95,26 @@ def procesar_entrada(frame, id_reconocido, bbox_reconocido, id_usuario_actual, s
             print("SPOOF detectado - no se puede realizar el registro")
     else:
             print("No hay persona reconocida para registrar entrada")
+def procesar_salida(frame, id_reconocido, bbox_reconocido, id_usuario_actual, session_spoof, input_name_spoof):
+    if id_reconocido is not None:
+        if es_cara_real(frame, bbox_reconocido, session_spoof, input_name_spoof):
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            nombre_foto = f"salida_persona_{id_reconocido}_{timestamp}.jpg"
+            ruta_foto = guardar_foto(frame, SALIDAS_DIR, nombre_foto)
+            try:
+                id_visita = registrar_salida(
+                    id_persona=id_reconocido,
+                    id_usuario_salida=id_usuario_actual,
+                    fotografia_salida_visita=ruta_foto
+                )
 
+                print("Salida:", id_visita)
+            except ValueError as e:
+                print(f"No se registró: {e}")
+        else:
+            print("SPOOF detectado - no se puede registrar la salida")
+    else:
+            print("No hay persona reconocida para registrar salida")
 while True:
     ret, frame = cap.read()
 
@@ -169,35 +192,10 @@ while True:
         procesar_entrada(frame, id_reconocido, bbox_reconocido, id_usuario_actual, session_spoof, input_name_spoof)
     # REGISTRAR SALIDA
     if tecla == ord('s'):
-        if id_reconocido is not None:
-            if es_cara_real(frame, bbox_reconocido, session_spoof, input_name_spoof):
-                if not tiene_visita_abierta(id_reconocido):
-                    print("La persona no tiene visita abierta. No se registra nada.")
-                else:
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    nombre_foto = f"salida_persona_{id_reconocido}_{timestamp}.jpg"
-                    ruta_foto = guardar_foto(frame, SALIDAS_DIR, nombre_foto)
-
-                    resultado = registrar_salida(
-                        id_persona=id_reconocido,
-                        id_usuario_salida=id_usuario_actual,
-                        fotografia_salida_visita=ruta_foto
-                    )
-
-                    print("Salida:", resultado)
-
-            else:
-                print("SPOOF detectado - no se puede registrar la salida")
-        else:
-            print("No hay persona reconocida para registrar salida")
-
-    # =========================
+        procesar_salida(frame, id_reconocido, bbox_reconocido, id_usuario_actual, session_spoof, input_name_spoof) 
     # CERRAR SESIÓN
-    # =========================
     if tecla == ord('c'):
         print("Sesión cerrada.")
         break
-
-
 cap.release()
 cv2.destroyAllWindows()
