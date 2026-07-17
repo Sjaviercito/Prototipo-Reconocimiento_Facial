@@ -4,7 +4,7 @@ import bcrypt
 from insightface.app import FaceAnalysis
 from vision.antispoofing import cargar_modelo, es_cara_real
 from datos.operador_datos import obtener_rostros_operadores
-from config import MODELO_ANTISPOOF_PATH
+from config import MODELO_ANTISPOOF_PATH, UMBRAL_RECONOCIMIENTO, DET_SIZE
 from getpass import getpass
 
 session_spoof, input_name_spoof = cargar_modelo(MODELO_ANTISPOOF_PATH)
@@ -17,7 +17,7 @@ for id_usuario, nombre, username, pin_hash, blob in operadores_bd:
 print(f"Operadores cargados:     {len(operadores)}")
 
 app = FaceAnalysis(allowed_modules=['detection','recognition'])
-app.prepare(ctx_id=-1, det_size=(320, 320))
+app.prepare(ctx_id=-1, det_size= DET_SIZE)
 
 def login_operador():
     cap = cv2.VideoCapture(0)
@@ -64,7 +64,7 @@ def login_operador():
                         mejor_similitud = similitud
                         mejor_operador = (id_usuario, nombre, username, pin_hash)
 
-                if mejor_similitud >= 0.60:
+                if mejor_similitud >= UMBRAL_RECONOCIMIENTO:
                     id_reconocido, nombre_reconocido, username_reconocido, pin_hash_reconocido = mejor_operador
                     bbox_reconocido = face.bbox
                     texto = f"{nombre_reconocido} ({mejor_similitud:.2f})"

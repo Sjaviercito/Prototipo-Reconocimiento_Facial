@@ -3,8 +3,7 @@ import os
 import numpy as np
 from insightface.app import FaceAnalysis
 from datetime import datetime
-
-from config import CARAS_DIR, MODELO_ANTISPOOF_PATH
+from config import CARAS_DIR, MODELO_ANTISPOOF_PATH, DET_SIZE
 from vision.antispoofing import cargar_modelo, es_cara_real
 
 
@@ -36,7 +35,7 @@ class CapturaOperadorUI:
             }
 
         self.app = FaceAnalysis(allowed_modules=["detection", "recognition"])
-        self.app.prepare(ctx_id=-1, det_size=(320, 320))
+        self.app.prepare(ctx_id=-1, det_size= DET_SIZE)
 
         self.session_spoof, self.input_name_spoof = cargar_modelo(MODELO_ANTISPOOF_PATH)
 

@@ -1,6 +1,10 @@
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UMBRAL_RECONOCIMIENTO = 0.6
+UMBRAL_DETECCION_ENROLAMIENTO = 0.80
+DET_SIZE = (320,320)
+TOTAL_FOTOS_ENROLAMIENTO = 5
 
 BD_DIR = os.path.join(BASE_DIR, "bd")
 BD_PATH = os.path.join(BD_DIR, "bitacora.db")

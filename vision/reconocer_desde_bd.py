@@ -6,8 +6,7 @@ from logica.gestion_visitas import registrar_entrada, registrar_salida
 from vision.antispoofing import cargar_modelo, es_cara_real
 from config import MODELO_ANTISPOOF_PATH
 from utils.guardar_foto import guardar_foto
-from config import ENTRADAS_DIR
-from config import SALIDAS_DIR
+from config import ENTRADAS_DIR, SALIDAS_DIR, UMBRAL_RECONOCIMIENTO, DET_SIZE
 from datetime import datetime
 from datos.visita_datos import tiene_visita_abierta
 from vision.login_operador import login_operador
@@ -26,7 +25,7 @@ for id_persona, blob in rostros_bd:
 
 
 app = FaceAnalysis(allowed_modules=['detection', 'recognition'])
-app.prepare(ctx_id=-1, det_size=(320, 320))
+app.prepare(ctx_id=-1, det_size= DET_SIZE)
 
 
 id_usuario_actual = login_operador()
@@ -62,6 +61,37 @@ def hacer_registro_entrada(frame, id_reconocido, id_usuario_actual):
         tipo_entrada_visita="facial"
     )
     print("Registro:", resultado)
+def procesar_entrada(frame, id_reconocido, bbox_reconocido, id_usuario_actual, session_spoof, input_name_spoof):
+    if id_reconocido is not None:
+        if es_cara_real(frame, bbox_reconocido, session_spoof, input_name_spoof):
+            verificacion = persona_puede_entrar(id_reconocido)
+
+            if verificacion["estado"] == "sin_reglamento":
+                print("No hay reglamento vigente. Avisar al administrador.")
+
+            elif verificacion["estado"] == "no_acepto":
+                reglamento = verificacion["reglamento"]
+                id_reglamento = reglamento[0]
+                nombre_reglamento = reglamento[2]
+
+                print(f"El visitante no ha aceptado el reglamento vigente: {nombre_reglamento}")
+                print("Pregunta al visitante si acepta el reglamento.")
+
+                aceptar = input("¿El visitante acepta el reglamento? Escribe SI para aceptar: ")
+                if aceptar == "SI":
+                    id_firma = registrar_aceptacion(id_reconocido, id_reglamento, id_usuario_actual)
+                    print(f"Reglamento aceptado. ID firma: {id_firma}")
+                    hacer_registro_entrada(frame, id_reconocido, id_usuario_actual)   # ← registro automático
+                else:
+                    print("El visitante no aceptó el reglamento. No se registra entrada.")
+
+            else:         
+                hacer_registro_entrada(frame, id_reconocido, id_usuario_actual)
+        else:
+            print("SPOOF detectado - no se puede realizar el registro")
+    else:
+            print("No hay persona reconocida para registrar entrada")
+
 while True:
     ret, frame = cap.read()
 
@@ -93,7 +123,7 @@ while True:
                     mejor_similitud = similitud
                     mejor_id = id_persona
 
-            if mejor_similitud > 0.6:
+            if mejor_similitud > UMBRAL_RECONOCIMIENTO:
                 id_reconocido = mejor_id
                 bbox_reconocido = face.bbox
                 texto = f"ID: {mejor_id} ({mejor_similitud:.2f})"
@@ -136,39 +166,8 @@ while True:
     # REGISTRAR ENTRADA
     # =========================
     if tecla == ord('e'):
-        if id_reconocido is not None:
-            if es_cara_real(frame, bbox_reconocido, session_spoof, input_name_spoof):
-                verificacion = persona_puede_entrar(id_reconocido)
-
-                if verificacion["estado"] == "sin_reglamento":
-                    print("No hay reglamento vigente. Avisar al administrador.")
-
-                elif verificacion["estado"] == "no_acepto":
-                    reglamento = verificacion["reglamento"]
-                    id_reglamento = reglamento[0]
-                    nombre_reglamento = reglamento[2]
-
-                    print(f"El visitante no ha aceptado el reglamento vigente: {nombre_reglamento}")
-                    print("Pregunta al visitante si acepta el reglamento.")
-
-                    aceptar = input("¿El visitante acepta el reglamento? Escribe SI para aceptar: ")
-                    if aceptar == "SI":
-                        id_firma = registrar_aceptacion(id_reconocido, id_reglamento, id_usuario_actual)
-                        print(f"Reglamento aceptado. ID firma: {id_firma}")
-                        hacer_registro_entrada(frame, id_reconocido, id_usuario_actual)   # ← registro automático
-                    else:
-                        print("El visitante no aceptó el reglamento. No se registra entrada.")
-
-                else:         
-                    hacer_registro_entrada(frame, id_reconocido, id_usuario_actual)
-            else:
-                print("SPOOF detectado - no se puede realizar el registro")
-        else:
-            print("No hay persona reconocida para registrar entrada")
-
-    # =========================
+        procesar_entrada(frame, id_reconocido, bbox_reconocido, id_usuario_actual, session_spoof, input_name_spoof)
     # REGISTRAR SALIDA
-    # =========================
     if tecla == ord('s'):
         if id_reconocido is not None:
             if es_cara_real(frame, bbox_reconocido, session_spoof, input_name_spoof):

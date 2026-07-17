@@ -5,8 +5,9 @@ import numpy as np
 from insightface.app import FaceAnalysis
 from datos.persona_datos import insertar_persona
 from vision.antispoofing import cargar_modelo, es_cara_real
-from config import MODELO_ANTISPOOF_PATH, CARAS_DIR, INE_DIR
+from config import MODELO_ANTISPOOF_PATH, CARAS_DIR, INE_DIR, UMBRAL_DETECCION_ENROLAMIENTO, DET_SIZE, TOTAL_FOTOS_ENROLAMIENTO
 from datetime import datetime
+from dominio import DatosPersona
 
 nombre = input("Nombre de la persona: ")
 departamento = input("Departamento / Proveedor: ")
@@ -22,20 +23,19 @@ carpeta_persona = os.path.join(CARAS_DIR, "personas", nombre)
 os.makedirs(carpeta_persona, exist_ok=True)
 
 def cara_valida_para_registro(face):
-    if face.det_score < 0.80:
+    if face.det_score < UMBRAL_DETECCION_ENROLAMIENTO:
         return False, f"Baja confianza de deteccion: {face.det_score:.2f}"
     return True, "Cara valida"
 
 app = FaceAnalysis(allowed_modules=['detection', 'recognition'])
-app.prepare(ctx_id=-1, det_size=(320, 320))
+app.prepare(ctx_id=-1, det_size= DET_SIZE)
 
 session_spoof, input_name_spoof = cargar_modelo(MODELO_ANTISPOOF_PATH)
 
 cap = cv2.VideoCapture(0)
 fotos_tomadas = 0
-total_fotos = 5
 
-while fotos_tomadas < total_fotos:
+while fotos_tomadas < TOTAL_FOTOS_ENROLAMIENTO:
     ret, frame = cap.read()
 
     if not ret:
@@ -46,7 +46,7 @@ while fotos_tomadas < total_fotos:
 
     cv2.putText(
         frame,
-        f"Fotos: {fotos_tomadas} / {total_fotos} - Presiona 't'",
+        f"Fotos: {fotos_tomadas} / {TOTAL_FOTOS_ENROLAMIENTO} - Presiona 't'",
         (10, 30),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.7,
@@ -87,7 +87,7 @@ cap.release()
 cv2.destroyAllWindows()
 
 
-if fotos_tomadas < total_fotos:
+if fotos_tomadas < TOTAL_FOTOS_ENROLAMIENTO:
         print("Registro cancelado. No se tomaron todas las fotos necesarias.")
         exit()
 print("Ahora se tomará foto de la INE.")
@@ -159,17 +159,18 @@ else:
     embedding_promedio = np.mean(embeddings, axis=0)
     emb_blob = embedding_promedio.astype(np.float32).tobytes()
 
-    id_persona = insertar_persona(
-        nombre_persona=nombre,
-        departamento_proveedor_persona=departamento,
-        tipo_persona=tipo,
+    persona = DatosPersona(
+        nombre=nombre,
+        departamento=departamento,
+        tipo=tipo,
         id_autorizador=id_autorizador,
-        emb_blob=emb_blob,
-        correo_persona=correo,
-        ruta_firma=ruta_firma,
-        ruta_ine=ruta_ine,
-        telefono_persona=telefono
+        rostro=emb_blob,
+        correo=correo,
+        firma=ruta_firma,
+        ine=ruta_ine,
+        telefono=telefono
     )
+    id_persona = insertar_persona(persona)
 
     print(f"Persona registrada correctamente. ID persona: {id_persona}")
 

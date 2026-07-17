@@ -6,7 +6,7 @@ from vision.antispoofing import cargar_modelo, es_cara_real
 from config import MODELO_ANTISPOOF_PATH
 import numpy as np
 from datos.usuario_datos import insertar_usuario
-from config import CARAS_DIR
+from config import CARAS_DIR, DET_SIZE
 from getpass import getpass
 
 nombre = input("Nombre del operador: ")
@@ -21,7 +21,7 @@ password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode
 pin_hash = bcrypt.hashpw(pin.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 app = FaceAnalysis(allowed_modules=['detection', 'recognition'])
-app.prepare(ctx_id=-1, det_size=(320, 320))
+app.prepare(ctx_id=-1, det_size= DET_SIZE)
 
 carpeta_operador = os.path.join(CARAS_DIR, "operadores", nombre)
 os.makedirs(carpeta_operador, exist_ok=True)

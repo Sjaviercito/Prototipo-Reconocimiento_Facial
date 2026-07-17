@@ -1,4 +1,5 @@
 from datos.conexion import obtener_conexion
+from dominio import DatosPersona
 
 
 
@@ -23,7 +24,7 @@ def obtener_todos_los_rostros():
         conexion.close()
 
 
-def insertar_persona(nombre_persona, departamento_proveedor_persona, tipo_persona, id_autorizador, emb_blob, correo_persona, ruta_firma, ruta_ine, telefono_persona):
+def insertar_persona(persona: DatosPersona):
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
@@ -40,15 +41,15 @@ def insertar_persona(nombre_persona, departamento_proveedor_persona, tipo_person
         telefono_persona
     )VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (
-            nombre_persona,
-            departamento_proveedor_persona,
-            tipo_persona,
-            id_autorizador,
-            emb_blob,
-            correo_persona,
-            ruta_firma,
-            ruta_ine,
-            telefono_persona
+            persona.nombre,
+            persona.departamento,
+            persona.tipo,
+            persona.id_autorizador,
+            persona.rostro,
+            persona.correo,
+            persona.firma,
+            persona.ine,
+            persona.telefono
         )
     )
         conexion.commit()
