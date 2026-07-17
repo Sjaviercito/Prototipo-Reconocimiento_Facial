@@ -1,7 +1,9 @@
 
 from datos.conexion import obtener_conexion
+import sqlite3
+from dominio import DatosVisita
 
-def tiene_visita_abierta(id_persona):
+def tiene_visita_abierta(id_persona: int) -> bool:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
@@ -13,7 +15,7 @@ def tiene_visita_abierta(id_persona):
         
 
 
-def insertar_visita(id_persona, id_usuario_entrada, id_autorizador, fecha_visita, hora_entrada_visita, fotografia_entrada_visita, tipo_entrada_visita, autorizador_nombre_copiado):
+def insertar_visita(visita: DatosVisita) -> int:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
@@ -29,14 +31,14 @@ def insertar_visita(id_persona, id_usuario_entrada, id_autorizador, fecha_visita
             autorizador_nombre_copiado
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
         (
-            id_persona,
-            id_usuario_entrada,
-            id_autorizador,
-            fecha_visita,
-            hora_entrada_visita,
-            fotografia_entrada_visita,
-            tipo_entrada_visita,
-            autorizador_nombre_copiado
+            visita.id_persona,
+            visita.id_usuario_entrada,
+            visita.id_autorizador,
+            visita.fecha,
+            visita.hora_entrada,
+            visita.fotografia_entrada,
+            visita.tipo_entrada,
+            visita.autorizador
         ))
         conexion.commit()
         id_visita = cursor.lastrowid
@@ -44,7 +46,7 @@ def insertar_visita(id_persona, id_usuario_entrada, id_autorizador, fecha_visita
     finally:
         conexion.close()
 
-def obtener_visita_abierta(id_persona):
+def obtener_visita_abierta(id_persona: int) -> sqlite3.Row | None:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
@@ -55,7 +57,7 @@ def obtener_visita_abierta(id_persona):
         conexion.close()
 
 
-def cerrar_visita(id_visita, hora_salida_visita, fotografia_salida_visita, id_usuario_salida):
+def cerrar_visita(id_visita: int, hora_salida_visita: str, fotografia_salida_visita: str, id_usuario_salida: int) -> int:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
@@ -68,7 +70,7 @@ def cerrar_visita(id_visita, hora_salida_visita, fotografia_salida_visita, id_us
         conexion.close()
 
 
-def obtener_visitas_abiertas():
+def obtener_visitas_abiertas() -> list[sqlite3.Row]:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
@@ -83,7 +85,7 @@ def obtener_visitas_abiertas():
         conexion.close()
 
 
-def obtener_todas_las_visitas():
+def obtener_todas_las_visitas() -> list[sqlite3.Row]:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()

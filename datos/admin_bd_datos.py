@@ -2,19 +2,19 @@ import os
 from datos.conexion import obtener_conexion
 from config import BD_PATH
 from datos.crear_bd import crear_tablas
+from typing import Any
 
 
-def convertir_valor(valor):
+def convertir_valor(valor: Any) -> Any:
     if isinstance(valor, bytes):
         return "Registrado"
 
     if valor is None:
         return None
-
     return valor
 
 
-def obtener_tablas():
+def obtener_tablas() -> list[str]:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
@@ -30,7 +30,7 @@ def obtener_tablas():
     finally:
         conexion.close()
         
-def obtener_registros_tabla(nombre_tabla, tablas_permitidas = None):
+def obtener_registros_tabla(nombre_tabla: str, tablas_permitidas: list[str] | None = None) -> dict:
     if tablas_permitidas is None:
         tablas_permitidas = obtener_tablas()
     if nombre_tabla not in tablas_permitidas:
@@ -57,7 +57,7 @@ def obtener_registros_tabla(nombre_tabla, tablas_permitidas = None):
     finally:
         conexion.close()
         
-def obtener_todas_las_tablas_con_registros():
+def obtener_todas_las_tablas_con_registros() -> list[dict]:
     tablas = obtener_tablas()
     resultado = []
 
@@ -65,7 +65,7 @@ def obtener_todas_las_tablas_con_registros():
         resultado.append(obtener_registros_tabla(tabla, tablas))
     return resultado
 
-def reiniciar_base_de_datos():
+def reiniciar_base_de_datos() -> bool:
     if os.path.exists(BD_PATH):
         os.remove(BD_PATH)
     crear_tablas()

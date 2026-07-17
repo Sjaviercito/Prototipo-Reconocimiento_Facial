@@ -58,14 +58,6 @@ def hacer_registro_entrada(frame, id_reconocido, id_usuario_actual):
         print(f"Entrada registrada. ID visita: {id_visita}")
     except ValueError as e:
         print(f"No se registró: {e}")
-    
-    resultado = registrar_entrada(
-        id_persona=id_reconocido,
-        id_usuario_entrada=id_usuario_actual,
-        fotografia_entrada_visita=ruta_foto,
-        tipo_entrada_visita="facial"
-    )
-    print("Registro:", resultado)
 
 def procesar_entrada(frame, id_reconocido, bbox_reconocido, id_usuario_actual, session_spoof, input_name_spoof):
     if id_reconocido is not None:
@@ -75,8 +67,8 @@ def procesar_entrada(frame, id_reconocido, bbox_reconocido, id_usuario_actual, s
                 print("No hay reglamento vigente. Avisar al administrador.")
             elif verificacion["estado"] == "no_acepto":
                 reglamento = verificacion["reglamento"]
-                id_reglamento = reglamento[0]
-                nombre_reglamento = reglamento[2]
+                id_reglamento = reglamento["id_reglamento"]
+                nombre_reglamento = reglamento["nombre_version_reglamento"]
 
                 print(f"El visitante no ha aceptado el reglamento vigente: {nombre_reglamento}")
                 print("Pregunta al visitante si acepta el reglamento.")
@@ -184,10 +176,7 @@ while True:
 
     if tecla == ord('q'):
         break
-
-    # =========================
     # REGISTRAR ENTRADA
-    # =========================
     if tecla == ord('e'):
         procesar_entrada(frame, id_reconocido, bbox_reconocido, id_usuario_actual, session_spoof, input_name_spoof)
     # REGISTRAR SALIDA

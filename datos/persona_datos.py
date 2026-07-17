@@ -1,9 +1,9 @@
 from datos.conexion import obtener_conexion
 from dominio import DatosPersona
+import sqlite3
 
 
-
-def obtener_persona(id_persona):
+def obtener_persona(id_persona: int) -> sqlite3.Row | None:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
@@ -13,7 +13,7 @@ def obtener_persona(id_persona):
     finally:
         conexion.close()
 
-def obtener_todos_los_rostros():
+def obtener_todos_los_rostros() -> list[sqlite3.Row]:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
@@ -24,7 +24,7 @@ def obtener_todos_los_rostros():
         conexion.close()
 
 
-def insertar_persona(persona: DatosPersona):
+def insertar_persona(persona: DatosPersona) -> int:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
