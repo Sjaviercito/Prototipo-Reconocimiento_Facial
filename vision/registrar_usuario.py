@@ -6,8 +6,9 @@ from vision.antispoofing import cargar_modelo, es_cara_real
 from config import MODELO_ANTISPOOF_PATH
 import numpy as np
 from datos.usuario_datos import insertar_usuario
-from config import CARAS_DIR, DET_SIZE
+from config import CARAS_DIR, DET_SIZE, UMBRAL_DETECCION_ENROLAMIENTO, TOTAL_FOTOS_ENROLAMIENTO
 from getpass import getpass
+from dominio import DatosUsuario
 
 nombre = input("Nombre del operador: ")
 username = input("Username: ")
@@ -28,21 +29,19 @@ os.makedirs(carpeta_operador, exist_ok=True)
 
 def cara_valida_para_registro(face):
     # 1. Confianza alta de detección
-    if face.det_score < 0.78:
+    if face.det_score < UMBRAL_DETECCION_ENROLAMIENTO:
         return False, f"Baja confianza de deteccion: {face.det_score:.2f}"
     return True, "Cara valida"
-
 cap = cv2.VideoCapture(0)
 fotos_tomadas = 0
-total_fotos = 5
 session_spoof, input_name_spoof = cargar_modelo(MODELO_ANTISPOOF_PATH)
-while fotos_tomadas < total_fotos:
+while fotos_tomadas < TOTAL_FOTOS_ENROLAMIENTO:
     ret, frame = cap.read()
     if not ret:
         break
     faces = app.get(frame)
     
-    cv2.putText(frame, f"Fotos: {fotos_tomadas} / {total_fotos} - Presiona 't'", 
+    cv2.putText(frame, f"Fotos: {fotos_tomadas} / {TOTAL_FOTOS_ENROLAMIENTO} - Presiona 't'", 
                 (10,30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,255,0), 2)
     cv2.imshow('Registro de operador', frame)
     tecla = cv2.waitKey(1)
@@ -97,14 +96,17 @@ else:
     embedding_promedio = np.mean(embeddings, axis=0)
     embedding_blob = embedding_promedio.astype(np.float32).tobytes()
 
-    id_usuario = insertar_usuario(
+    usuario = DatosUsuario(
         nombre=nombre,
         rol=rol,
         username=username,
         correo=correo,
         contrasena_hash=password_hash,
-        pin_hash_usuario = pin_hash,
-        rostro_embedding=embedding_blob
+        pin_hash = pin_hash,
+        rostro=embedding_blob
+        
     )
+    id_usuario = insertar_usuario(usuario)
+
 
     print(f"Operador registrado correctamente. ID usuario: {id_usuario}")

@@ -22,3 +22,13 @@ class DatosVisita:
     fotografia_entrada: str
     tipo_entrada: str
     autorizador: str
+    
+@dataclass(frozen=True)
+class DatosUsuario:
+    nombre: str
+    rol: str
+    username: str
+    correo: str
+    contrasena_hash: str
+    pin_hash: str
+    rostro: bytes | None = None

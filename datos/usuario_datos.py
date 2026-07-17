@@ -1,6 +1,8 @@
 from datos.conexion import obtener_conexion
+from dominio import DatosUsuario
+import sqlite3
 
-def insertar_usuario(nombre, rol, username, correo, contrasena_hash, pin_hash_usuario, rostro_embedding = None  ):
+def insertar_usuario(usuario: DatosUsuario) -> int:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
@@ -13,14 +15,14 @@ def insertar_usuario(nombre, rol, username, correo, contrasena_hash, pin_hash_us
                 contrasena_usuario,
                 pin_hash_usuario,
                 rostro_embedding_usuario) VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                (nombre, rol, username, correo, contrasena_hash, pin_hash_usuario, rostro_embedding))
+                (usuario.nombre, usuario.rol, usuario.username, usuario.correo, usuario.contrasena_hash, usuario.pin_hash, usuario.rostro))
         conexion.commit()
         id_usuario = cursor.lastrowid
         return id_usuario
     finally:
         conexion.close()
 
-def obtener_usuario(id_usuario):
+def obtener_usuario(id_usuario: int) -> sqlite3.Row | None:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
@@ -30,7 +32,7 @@ def obtener_usuario(id_usuario):
     finally:
         conexion.close()
 
-def obtener_usuario_por_username(username):
+def obtener_usuario_por_username(username: str) -> sqlite3.Row | None:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
@@ -40,7 +42,7 @@ def obtener_usuario_por_username(username):
     finally: 
         conexion.close()
 
-def obtener_todos_los_usuarios():
+def obtener_todos_los_usuarios() -> list[sqlite3.Row]:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()

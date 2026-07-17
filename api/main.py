@@ -19,6 +19,7 @@ from datos.usuario_datos import obtener_todos_los_usuarios
 from datos.admin_bd_datos import obtener_todas_las_tablas_con_registros, reiniciar_base_de_datos
 from vision.captura_operador import CapturaOperadorUI
 from datos.usuario_datos import insertar_usuario
+from dominio import DatosUsuario
 
 
 app = FastAPI()
@@ -74,7 +75,6 @@ def login(datos: LoginDatos):
         "token": token,
         "rol": rol
     }
-
 
 @app.get("/auditoria")
 def ver_auditoria(sesion: dict = Depends(verificar_sesion)):
@@ -230,15 +230,16 @@ def registrar_operador_setup(
     password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
     pin_hash = bcrypt.hashpw(pin.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
-    id_usuario = insertar_usuario(
+    usuario = DatosUsuario(
         nombre=nombre,
         rol=rol,
         username=username,
         correo=correo,
         contrasena_hash=password_hash,
-        pin_hash_usuario=pin_hash,
-        rostro_embedding=embedding_blob
+        pin_hash=pin_hash,
+        rostro=embedding_blob
     )
+    id_usuario = insertar_usuario(usuario)
 
     captura_operador_ui.cerrar()
 
