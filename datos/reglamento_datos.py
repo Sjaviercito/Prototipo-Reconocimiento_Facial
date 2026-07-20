@@ -1,7 +1,8 @@
 from datos.conexion import obtener_conexion
 from datetime import datetime
+import sqlite3
 
-def obtener_reglamento_vigente():
+def obtener_reglamento_vigente() -> sqlite3.Row | None:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
@@ -11,7 +12,7 @@ def obtener_reglamento_vigente():
     finally:
         conexion.close()
 
-def insertar_reglamento(ruta_pdf_reglamento, nombre_version_reglamento, id_usuario):
+def insertar_reglamento(ruta_pdf_reglamento: str, nombre_version_reglamento: str, id_usuario: int) -> int:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()

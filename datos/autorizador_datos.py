@@ -1,7 +1,8 @@
 import os
 from datos.conexion import obtener_conexion
+import sqlite3
 
-def insertar_autorizador(nombre,puesto,departamento,correo, telefono):
+def insertar_autorizador(nombre: str,puesto: str,departamento: str,correo: str, telefono: str) -> int:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
@@ -22,7 +23,7 @@ def insertar_autorizador(nombre,puesto,departamento,correo, telefono):
     finally:
         conexion.close()
    
-def obtener_autorizador(id_autorizador):
+def obtener_autorizador(id_autorizador: int) -> sqlite3.Row | None:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()

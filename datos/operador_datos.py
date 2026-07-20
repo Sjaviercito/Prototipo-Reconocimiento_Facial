@@ -1,6 +1,6 @@
 from datos.conexion import obtener_conexion
-
-def obtener_rostros_operadores():
+import sqlite3
+def obtener_rostros_operadores() -> list[sqlite3.Row]:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()

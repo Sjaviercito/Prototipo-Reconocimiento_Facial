@@ -1,7 +1,8 @@
 from datos.conexion import obtener_conexion
 from datetime import datetime
+import sqlite3
 
-def obtener_firma(id_persona, id_reglamento):
+def obtener_firma(id_persona: int, id_reglamento: int) -> sqlite3.Row | None:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
@@ -11,7 +12,7 @@ def obtener_firma(id_persona, id_reglamento):
     finally:
         conexion.close()
 
-def insertar_firma(id_persona ,id_reglamento, tipo_firma ,id_usuario, ruta_firma = None):
+def insertar_firma(id_persona: int,id_reglamento: int, tipo_firma: str ,id_usuario: int, ruta_firma = None) -> int:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()

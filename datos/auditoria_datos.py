@@ -1,7 +1,7 @@
 from datos.conexion import obtener_conexion
 from datetime import datetime
-
-def insertar_auditoria(id_usuario, accion, tabla_afectada, id_registro_afectado):
+import sqlite3
+def insertar_auditoria(id_usuario : int, accion: str, tabla_afectada : str, id_registro_afectado: int) -> int:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
@@ -30,13 +30,13 @@ def insertar_auditoria(id_usuario, accion, tabla_afectada, id_registro_afectado)
     finally:
         conexion.close()
 
-def obtener_toda_la_auditoria():
+def obtener_toda_la_auditoria() -> list[sqlite3.Row]:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
         cursor.execute("""
             SELECT a.id_auditoria, u.nombre_usuario, a.fecha_auditoria, a.hora_auditoria,
-                a.accion_auditoria, a.tabla_afectada_auditoria, a.id_registro_afectado_auditoria
+                a.accion_auditoria, a.tabla_afectada_auditoria, a.id_registro_afectado_auditoria 
             FROM auditoria a
             JOIN usuario u ON a.id_usuario = u.id_usuario
             ORDER BY a.id_auditoria DESC
