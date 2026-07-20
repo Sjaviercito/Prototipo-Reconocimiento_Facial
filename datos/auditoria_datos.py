@@ -1,7 +1,7 @@
 from datos.conexion import obtener_conexion
 from datetime import datetime
 import sqlite3
-def insertar_auditoria(id_usuario : int, accion: str, tabla_afectada : str, id_registro_afectado: int) -> int:
+def insertar_auditoria(id_usuario: int, accion: str, tabla_afectada: str, id_registro_afectado: int) -> int:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
