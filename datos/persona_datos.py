@@ -26,6 +26,7 @@ def obtener_todos_los_rostros() -> list[sqlite3.Row]:
 
 def insertar_persona(persona: DatosPersona) -> int:
     conexion = obtener_conexion()
+    
     try:
         cursor = conexion.cursor()
         cursor.execute("""
@@ -55,5 +56,15 @@ def insertar_persona(persona: DatosPersona) -> int:
         conexion.commit()
         id_persona = cursor.lastrowid
         return id_persona
+    finally:
+        conexion.close()
+        
+def obtener_correos_de_personas() -> list[sqlite3.Row]:
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+    try:    
+        cursor.execute("SELECT id_persona, nombre_persona, correo_persona FROM persona")
+        resultado = cursor.fetchall()
+        return resultado
     finally:
         conexion.close()

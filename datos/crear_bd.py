@@ -108,7 +108,7 @@ def crear_tablas():
             """)
         
         conexion.commit()
-    except:
+    finally:
         conexion.close()
 
 

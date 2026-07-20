@@ -20,6 +20,7 @@ from datos.admin_bd_datos import obtener_todas_las_tablas_con_registros, reinici
 from vision.captura_operador import CapturaOperadorUI
 from datos.usuario_datos import insertar_usuario
 from dominio import DatosUsuario
+from logica.notificaciones import notificar_nuevo_reglamento
 
 
 app = FastAPI()
@@ -129,7 +130,7 @@ async def subir_reglamento(
         nombre_version_reglamento=nombre_version,
         id_usuario=sesion["id_usuario"]
     )
-
+    notificar_nuevo_reglamento(id_reglamento, nombre_version)
     return {
         "mensaje": "Reglamento subido correctamente",
         "id_reglamento": id_reglamento,

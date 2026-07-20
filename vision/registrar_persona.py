@@ -105,7 +105,7 @@ def capturar_ine(nombre: str) -> str | None:
                 cv2.imwrite(ruta_ine, frame_ine)
                 print(f"INE guardada en: {ruta_ine}")
                 return ruta_ine
-    except:
+    finally:
         cap_ine.release()
         cv2.destroyAllWindows()
 def generar_embedding_promedio(app, carpeta: str) ->bytes | None:
