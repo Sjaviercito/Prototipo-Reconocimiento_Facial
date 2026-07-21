@@ -11,18 +11,9 @@ async function hacerLogin() {
 
     if (respuesta.ok) {
         const datos = await respuesta.json();
-
         localStorage.setItem('token', datos.token);
         localStorage.setItem('rol', datos.rol);
-
-        if (datos.rol === "admin") {
-            window.location.href = '/';
-        } else if (datos.rol === "operador") {
-            window.location.href = '/operador';
-        } else {
-            window.location.href = '/';
-        }
-
+        window.location.href = '/';
     } else {
         error.textContent = 'Usuario o contraseña incorrectos';
     }

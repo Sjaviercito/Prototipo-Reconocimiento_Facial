@@ -1,3 +1,7 @@
+const rolUsuario = localStorage.getItem("rol");
+if (rolUsuario !== "admin") {
+    document.getElementById("boton-panel-admin").style.display = "none";
+}
 async function cargarAdentro() {
     const respuesta = await fetch('/adentro', {
         headers: { 'Authorization': 'Bearer ' + token }
