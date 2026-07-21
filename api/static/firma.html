@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firma</title>
+    <style>
+        body { text-align: center; font-family: sans-serif; }
+        #canvas-firma {
+            border: 2px solid #333;
+            touch-action: none;   /* clave para táctil, ahorita te explico */
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <h2>Firma aquí</h2>
+    <canvas id="canvas-firma" width="400" height="200"></canvas>
+    <br>
+    <button onclick="limpiar()">Limpiar</button>
+    <button onclick="guardar()">Guardar</button>
+
+    <script>
+        const canvas = document.getElementById('canvas-firma');
+        const ctx = canvas.getContext('2d');
+        let dibujando = false;
+
+        function posicion(evento) {
+            const rect = canvas.getBoundingClientRect();
+            const punto = evento.touches ? evento.touches[0] : evento;
+            return {
+                x: punto.clientX - rect.left,
+                y: punto.clientY - rect.top
+            };
+        }
+
+        function empezar(evento) {
+            dibujando = true;
+            const p = posicion(evento);
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            evento.preventDefault();
+        }
+
+        function mover(evento) {
+            if (!dibujando) return;
+            const p = posicion(evento);
+            ctx.lineTo(p.x, p.y);
+            ctx.stroke();
+            evento.preventDefault();
+        }
+
+        function terminar() {
+            dibujando = false;
+        }
+
+        canvas.addEventListener('mousedown', empezar);
+        canvas.addEventListener('mousemove', mover);
+        canvas.addEventListener('mouseup', terminar);
+        canvas.addEventListener('touchstart', empezar);
+        canvas.addEventListener('touchmove', mover);
+        canvas.addEventListener('touchend', terminar);
+
+        function limpiar() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        async function guardar() {
+        const imagenBase64 = canvas.toDataURL('image/png');
+
+        const respuesta = await fetch('/firma/guardar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imagen: imagenBase64 })
+        });
+        if (respuesta.ok) {
+        const datos = await respuesta.json();
+        alert('Firma guardada: ' + datos.ruta);
+        } else {
+        alert('Error al guardar la firma');
+        }
+        }
+    </script>
+</body>
+</html>

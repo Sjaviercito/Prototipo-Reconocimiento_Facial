@@ -22,6 +22,7 @@ DOCUMENTOS_DIR = os.path.join(BASE_DIR, "documentos")
 INE_DIR = os.path.join(DOCUMENTOS_DIR, "ine")
 DOCUMENTOS_DIR = os.path.join(BASE_DIR, "documentos")
 REGLAMENTOS_DIR = os.path.join(DOCUMENTOS_DIR, "reglamentos")
+FIRMAS_DIR = os.path.join(EVIDENCIAS_DIR, "firmas")
 
 os.makedirs(INE_DIR, exist_ok=True)
 os.makedirs(ENTRADAS_DIR, exist_ok=True)

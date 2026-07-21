@@ -13,7 +13,7 @@ from datos.auditoria_datos import obtener_toda_la_auditoria
 from datos.reglamento_datos import obtener_reglamento_vigente, insertar_reglamento
 from datetime import datetime
 from fastapi import UploadFile, File, Form
-from config import REGLAMENTOS_DIR
+from config import REGLAMENTOS_DIR, FIRMAS_DIR
 import os
 from datos.usuario_datos import obtener_todos_los_usuarios
 from datos.admin_bd_datos import obtener_todas_las_tablas_con_registros, reiniciar_base_de_datos
@@ -21,6 +21,10 @@ from vision.captura_operador import CapturaOperadorUI
 from datos.usuario_datos import insertar_usuario
 from dominio import DatosUsuario
 from logica.notificaciones import notificar_nuevo_reglamento
+import base64
+from datetime import datetime
+class FirmaData(BaseModel):
+    imagen: str
 
 
 app = FastAPI()
@@ -96,6 +100,10 @@ def ver_reglamento_vigente(sesion: dict = Depends(verificar_sesion)):
             "nombre_version": reglamento[2]
         }
     }
+@app.get("/firma", response_class=HTMLResponse)
+def firma_page():
+    with open("api/static/firma.html", "r", encoding="utf-8") as f:
+        return f.read()
 @app.post("/reglamentos")
 async def subir_reglamento(
     nombre_version: str = Form(...),
@@ -248,3 +256,21 @@ def registrar_operador_setup(
         "mensaje": "Operador registrado correctamente",
         "id_usuario": id_usuario
     }
+    
+@app.post("/firma/guardar")
+def guardar_firma(datos: FirmaData):
+    # quitar el prefijo "data:image/png;base64,"
+    _, base64_puro = datos.imagen.split(",", 1)
+
+    # decodificar base64 a bytes
+    imagen_bytes = base64.b64decode(base64_puro)
+
+    # guardar como archivo
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    nombre = f"firma_{timestamp}.png"
+    os.makedirs(FIRMAS_DIR, exist_ok=True)
+    ruta = os.path.join(FIRMAS_DIR, nombre)
+    with open(ruta, "wb") as f:
+        f.write(imagen_bytes)
+
+    return {"ruta": ruta}
