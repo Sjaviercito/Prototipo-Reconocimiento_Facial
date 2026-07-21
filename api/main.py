@@ -17,7 +17,7 @@ from config import REGLAMENTOS_DIR, FIRMAS_DIR
 import os
 from datos.usuario_datos import obtener_todos_los_usuarios
 from datos.admin_bd_datos import obtener_todas_las_tablas_con_registros, reiniciar_base_de_datos
-from vision.captura_operador import CapturaOperadorUI
+from vision.captura_facial import CapturaFacialUI
 from datos.usuario_datos import insertar_usuario
 from dominio import DatosUsuario
 from logica.notificaciones import notificar_nuevo_reglamento
@@ -28,7 +28,8 @@ class FirmaData(BaseModel):
 
 
 app = FastAPI()
-captura_operador_ui = CapturaOperadorUI()
+captura_operadores = CapturaFacialUI("operadores")
+captura_personas = CapturaFacialUI("personas")
 app.mount("/static", StaticFiles(directory="api/static"), name="static")
 
 
@@ -184,7 +185,7 @@ def iniciar_camara_operador(sesion: dict = Depends(verificar_sesion)):
     if sesion["rol"] != "admin":
         raise HTTPException(status_code=403, detail="Solo admin puede registrar operadores")
 
-    resultado = captura_operador_ui.iniciar()
+    resultado = captura_operadores.iniciar()
 
     print("RESULTADO INICIAR CAMARA:", resultado)
 
@@ -201,7 +202,7 @@ def tomar_rostro_operador(
     if sesion["rol"] != "admin":
         raise HTTPException(status_code=403, detail="Solo admin puede registrar operadores")
 
-    resultado = captura_operador_ui.tomar_foto_rostro(nombre_operador)
+    resultado = captura_operadores.tomar_foto_rostro(nombre_operador)
 
     if not resultado["ok"]:
         raise HTTPException(status_code=400, detail=resultado["mensaje"])
@@ -213,7 +214,7 @@ def cancelar_camara_operador(sesion: dict = Depends(verificar_sesion)):
     if sesion["rol"] != "admin":
         raise HTTPException(status_code=403, detail="Solo admin puede registrar operadores")
 
-    return captura_operador_ui.cancelar()
+    return captura_operadores.cancelar()
 
 @app.post("/setup/operadores/registrar")
 def registrar_operador_setup(
@@ -231,7 +232,7 @@ def registrar_operador_setup(
     if rol not in ["admin", "operador"]:
         raise HTTPException(status_code=400, detail="Rol inválido")
 
-    embedding_blob = captura_operador_ui.obtener_embedding_promedio_blob()
+    embedding_blob = captura_operadores.obtener_embedding_promedio_blob()
 
     if embedding_blob is None:
         raise HTTPException(status_code=400, detail="Debes capturar 5 fotos de rostro")
@@ -249,8 +250,9 @@ def registrar_operador_setup(
         rostro=embedding_blob
     )
     id_usuario = insertar_usuario(usuario)
+    captura_operadores.confirmar_y_guardar(nombre)
 
-    captura_operador_ui.cerrar()
+    captura_operadores.cerrar()
 
     return {
         "mensaje": "Operador registrado correctamente",

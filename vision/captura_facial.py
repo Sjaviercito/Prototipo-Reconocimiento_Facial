@@ -3,20 +3,21 @@ import os
 import numpy as np
 from insightface.app import FaceAnalysis
 from datetime import datetime
-from config import CARAS_DIR, MODELO_ANTISPOOF_PATH, DET_SIZE
+from config import CARAS_DIR, MODELO_ANTISPOOF_PATH, DET_SIZE, TOTAL_FOTOS_ENROLAMIENTO
 from vision.antispoofing import cargar_modelo, es_cara_real
 
 
-class CapturaOperadorUI:
-    def __init__(self):
+class CapturaFacialUI:
+    def __init__(self, subcarpeta):
+        self.subcarpeta = subcarpeta
         self.cap = None
         self.app = None
         self.activa = False
         self.embeddings = []
-        self.fotos_rostro = []
+        self.frames_rostro = []
         self.session_spoof = None
         self.input_name_spoof = None
-        self.total_requerido = 5
+        self.total_requerido = TOTAL_FOTOS_ENROLAMIENTO
 
     def iniciar(self):
         if self.activa:
@@ -41,14 +42,13 @@ class CapturaOperadorUI:
 
         self.activa = True
         self.embeddings = []
-        self.fotos_rostro = []
-
+        self.frames_rostro = [] 
         return {
             "ok": True,
             "mensaje": "Sesión de cámara iniciada"
         }
 
-    def tomar_foto_rostro(self, nombre_operador):
+    def tomar_foto_rostro(self, nombre):
         if not self.activa or self.cap is None:
             return {
                 "ok": False,
@@ -98,17 +98,16 @@ class CapturaOperadorUI:
         embedding = face.embedding.astype(np.float32)
         self.embeddings.append(embedding)
 
-        nombre_limpio = nombre_operador.replace(" ", "_").lower()
-        carpeta_operador = os.path.join(CARAS_DIR, "operadores", nombre_limpio)
-        os.makedirs(carpeta_operador, exist_ok=True)
+        nombre_limpio = nombre.replace(" ", "_").lower()
+        carpeta = os.path.join(CARAS_DIR, self.subcarpeta, nombre_limpio)
+        os.makedirs(carpeta, exist_ok=True)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         numero_foto = len(self.embeddings)
         nombre_foto = f"rostro_{numero_foto}_{timestamp}.jpg"
-        ruta_foto = os.path.join(carpeta_operador, nombre_foto)
+        ruta_foto = os.path.join(carpeta, nombre_foto)
 
-        cv2.imwrite(ruta_foto, frame)
-        self.fotos_rostro.append(ruta_foto)
+        self.frames_rostro.append(frame.copy())
 
         if len(self.embeddings) == self.total_requerido:
             mensaje = "Fotos tomadas correctamente. Ya puedes registrar el operador."
@@ -151,5 +150,19 @@ class CapturaOperadorUI:
 
     def cancelar(self):
         self.embeddings = []
-        self.fotos_rostro = []
+        self.frames_rostro = []
         return self.cerrar()
+    
+    def confirmar_y_guardar(self, nombre):
+        if len(self.frames_rostro) < TOTAL_FOTOS_ENROLAMIENTO:
+            raise ValueError("Numero insuficiente de fotos")
+        rutas_fotos = []
+        carpeta = os.path.join(CARAS_DIR, self.subcarpeta, nombre)
+        os.makedirs(carpeta, exist_ok=True)
+        for index, frame in enumerate(self.frames_rostro, start=1):
+            ruta = os.path.join(carpeta, f"foto_{index}.jpg")
+            rutas_fotos.append(ruta)
+            cv2.imwrite(ruta, frame)
+        return rutas_fotos
+            
+        
