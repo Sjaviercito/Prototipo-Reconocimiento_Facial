@@ -1,15 +1,15 @@
 from datos.usuario_datos import insertar_usuario
 from datos.auditoria_datos import insertar_auditoria
 from dominio import DatosUsuario
-def registrar_usuario(persona: DatosUsuario, id_usuario: int) -> int:
-    id_persona = insertar_usuario(persona)
+def registrar_usuario(usuario: DatosUsuario, id_usuario_registra: int) -> int:
+    id_usuario_nuevo = insertar_usuario(usuario)
     insertar_auditoria(
-        id_usuario,
-        f"Registro persona: {persona.nombre}",
-        "persona",
-        id_persona
+        id_usuario_registra,
+        f"Registro usuario: {usuario.nombre}",
+        "usuario",
+        id_usuario_nuevo
         
     )
-    return id_usuario
+    return id_usuario_nuevo
     
     

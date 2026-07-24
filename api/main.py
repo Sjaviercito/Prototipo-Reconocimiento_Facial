@@ -19,7 +19,7 @@ from logica.gestion_personas import registrar_persona
 from datos.usuario_datos import obtener_todos_los_usuarios
 from datos.admin_bd_datos import obtener_todas_las_tablas_con_registros, reiniciar_base_de_datos
 from vision.captura_facial import CapturaFacialUI
-from datos.usuario_datos import insertar_usuario 
+from logica.gestion_operadores import registrar_usuario
 from dominio import DatosUsuario, DatosPersona
 from logica.notificaciones import notificar_nuevo_reglamento
 import base64
@@ -305,7 +305,7 @@ def registrar_operador_setup(
         pin_hash=pin_hash,
         rostro=embedding_blob
     )
-    id_usuario = insertar_usuario(usuario)
+    id_usuario = registrar_usuario(usuario, sesion["id_usuario"])
     captura_operadores.confirmar_y_guardar(nombre)
 
     captura_operadores.cerrar()
