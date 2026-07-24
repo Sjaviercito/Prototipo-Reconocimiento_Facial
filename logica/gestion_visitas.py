@@ -28,7 +28,6 @@ def registrar_entrada(id_persona: int, id_usuario_entrada: int , fotografia_entr
         "Visita",
         id_visita
     )
-    
     return id_visita
 
 def registrar_salida(id_persona: int, id_usuario_salida: int, fotografia_salida_visita: str) -> int:

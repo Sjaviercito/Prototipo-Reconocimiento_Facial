@@ -15,14 +15,19 @@ from datetime import datetime
 from fastapi import UploadFile, File, Form
 from config import REGLAMENTOS_DIR, FIRMAS_DIR
 import os
+from logica.gestion_personas import registrar_persona
 from datos.usuario_datos import obtener_todos_los_usuarios
 from datos.admin_bd_datos import obtener_todas_las_tablas_con_registros, reiniciar_base_de_datos
 from vision.captura_facial import CapturaFacialUI
-from datos.usuario_datos import insertar_usuario
-from dominio import DatosUsuario
+from datos.usuario_datos import insertar_usuario 
+from dominio import DatosUsuario, DatosPersona
 from logica.notificaciones import notificar_nuevo_reglamento
 import base64
 from datetime import datetime
+from datos.departamento_datos import obtener_departamentos, insertar_departamento
+from datos.proveedores_datos import obtener_proveedores, insertar_proveedor
+from datos.autorizador_datos import obtener_autorizadores, insertar_autorizador
+from datos.autorizador_datos import obtener_autorizadores, insertar_autorizador
 class FirmaData(BaseModel):
     imagen: str
 
@@ -82,6 +87,57 @@ def login(datos: LoginDatos):
         "rol": rol
     }
 
+@app.get("/departamentos")
+def listar_departamentos(sesion: dict = Depends(verificar_sesion)):
+    return {"departamentos": [dict(fila) for fila in obtener_departamentos()]}
+
+@app.get("/proveedores")
+def listar_proveedores(sesion: dict = Depends(verificar_sesion)):
+    return {"proveedores": [dict(fila) for fila in obtener_proveedores()]}
+
+@app.get("/autorizadores")
+def listar_autorizadores(sesion: dict = Depends(verificar_sesion)):
+    return {"autorizadores": [dict(fila) for fila in obtener_autorizadores()]}
+
+@app.post("/departamentos")
+def crear_departamento(nombre: str = Form(...), sesion: dict = Depends(verificar_sesion)):
+    try:
+        id_departamento = insertar_departamento(nombre)
+        return {"id_departamento": id_departamento, "nombre": nombre}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+@app.post("/proveedores")
+def crear_proveedor(nombre: str = Form(...), sesion: dict = Depends(verificar_sesion)):
+    try:
+        id_proveedor = insertar_proveedor(nombre)
+        return {"id_proveedor": id_proveedor, "nombre": nombre}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+@app.post("/autorizadores")
+def crear_autorizador(
+    nombre: str = Form(...),
+    puesto: str = Form(...),
+    departamento: str = Form(...),
+    correo: str = Form(...),
+    telefono: str = Form(...),
+    sesion: dict = Depends(verificar_sesion)
+):
+    id_autorizador = insertar_autorizador(nombre, puesto, departamento, correo, telefono)
+    return {"id_autorizador": id_autorizador, "nombre": nombre}
+   
+@app.post("/autorizadores")
+def crear_autorizador(
+    nombre: str = Form(...),
+    puesto: str = Form(...),
+    departamento: str = Form(...),
+    correo: str = Form(...),
+    telefono: str = Form(...),
+    sesion: dict = Depends(verificar_sesion)
+):
+    id_autorizador = insertar_autorizador(nombre, puesto, departamento, correo, telefono)
+    return {"id_autorizador": id_autorizador, "nombre": nombre}
+   
 @app.get("/auditoria")
 def ver_auditoria(sesion: dict = Depends(verificar_sesion)):
     registros = obtener_toda_la_auditoria()
@@ -257,6 +313,82 @@ def registrar_operador_setup(
     return {
         "mensaje": "Operador registrado correctamente",
         "id_usuario": id_usuario
+    }
+@app.get("/setup/personas", response_class=HTMLResponse)
+def setup_persona_page():
+    with open("api/static/setup_persona.html", "r", encoding="utf-8") as f:
+        return f.read()
+    
+@app.post("/setup/personas/camara/iniciar")
+def iniciar_camara_persona(sesion: dict = Depends(verificar_sesion)):
+    resultado = captura_personas.iniciar()
+
+    print("RESULTADO INICIAR CAMARA:", resultado)
+
+    if not resultado["ok"]:
+        raise HTTPException(status_code=400, detail=resultado["mensaje"])
+
+    return resultado
+
+@app.post("/setup/personas/camara/rostro")
+def tomar_rostro_persona(
+    nombre_persona: str = Form(...),
+    sesion: dict = Depends(verificar_sesion)
+):  
+
+    resultado = captura_personas.tomar_foto_rostro(nombre_persona)
+
+    if not resultado["ok"]:
+        raise HTTPException(status_code=400, detail=resultado["mensaje"])
+
+    return resultado
+
+@app.post("/setup/personas/camara/cancelar")
+def cancelar_camara_persona(sesion: dict = Depends(verificar_sesion)):
+    return captura_personas.cancelar()
+
+@app.post("/setup/personas/registrar")
+def registrar_persona_setup(
+    nombre: str = Form(...),
+    id_departamento: int | None = Form(None),
+    id_proveedor: int | None = Form(None),
+    tipo: str = Form(...),
+    telefono: str = Form(...),
+    id_autorizador: int = Form(...),
+    correo: str = Form(...),
+    sesion: dict = Depends(verificar_sesion)
+):
+    if tipo == "gobierno":
+        id_proveedor = None
+    elif tipo == "proveedor":
+        id_departamento = None
+    else:
+        raise HTTPException(400, "Tipo inválido")
+    embedding_blob = captura_personas.obtener_embedding_promedio_blob()
+
+    if embedding_blob is None:
+        raise HTTPException(status_code=400, detail="Debes capturar 5 fotos de rostro")
+
+    persona = DatosPersona(
+        nombre=nombre,
+        id_departamento=id_departamento,
+        id_proveedor=id_proveedor,
+        tipo=tipo,
+        telefono=telefono,
+        id_autorizador=id_autorizador,
+        rostro=embedding_blob,
+        correo=correo, 
+        firma="pendiente",
+        ine="pendiente"
+    )
+    id_persona = registrar_persona(persona, sesion["id_usuario"])
+    captura_personas.confirmar_y_guardar(nombre)
+
+    captura_personas.cerrar()
+
+    return {
+        "mensaje": "Persona registrado correctamente",
+        "id_persona": id_persona
     }
     
 @app.post("/firma/guardar")

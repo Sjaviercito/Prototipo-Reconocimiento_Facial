@@ -13,7 +13,9 @@ async function hacerLogin() {
         const datos = await respuesta.json();
         localStorage.setItem('token', datos.token);
         localStorage.setItem('rol', datos.rol);
-        window.location.href = '/';
+        const destino = localStorage.getItem('rutaDestino') || '/';
+        localStorage.removeItem('rutaDestino');
+        window.location.href = destino;
     } else {
         error.textContent = 'Usuario o contraseña incorrectos';
     }

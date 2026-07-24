@@ -32,7 +32,8 @@ def insertar_persona(persona: DatosPersona) -> int:
         cursor.execute("""
         INSERT INTO persona(
         nombre_persona,
-        departamento_proveedor_persona,
+        id_departamento,
+        id_proveedor,
         tipo_persona,
         id_autorizador,
         rostro_embedding_persona,
@@ -40,10 +41,11 @@ def insertar_persona(persona: DatosPersona) -> int:
         firma_persona,
         ine_persona,
         telefono_persona
-    )VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+    )VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (
             persona.nombre,
-            persona.departamento,
+            persona.id_departamento,
+            persona.id_proveedor,
             persona.tipo,
             persona.id_autorizador,
             persona.rostro,

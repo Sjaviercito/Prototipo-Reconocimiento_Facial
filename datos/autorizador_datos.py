@@ -32,6 +32,15 @@ def obtener_autorizador(id_autorizador: int) -> sqlite3.Row | None:
         return resultado
     finally:
         conexion.close()
+def obtener_autorizadores() -> list[sqlite3.Row]:
+    conexion = obtener_conexion()
+    try:
+        cursor = conexion.cursor()
+        cursor.execute("SELECT id_autorizador, nombre_autorizador FROM autorizador")
+        resultado = cursor.fetchall()
+        return resultado
+    finally:
+        conexion.close()
 
     
         

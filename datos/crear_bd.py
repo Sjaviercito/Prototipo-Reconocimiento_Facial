@@ -3,9 +3,6 @@ import os
 from config import BD_DIR
 from datos.conexion import obtener_conexion
 
-
-
-
 def crear_tablas():
     os.makedirs(BD_DIR, exist_ok=True)
     conexion = obtener_conexion()
@@ -30,10 +27,19 @@ def crear_tablas():
             correo_autorizador TEXT NOT NULL,
             telefono_autorizador TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS departamento(
+            id_departamento INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre_departamento TEX NOT NULL UNIQUE COLLATE NOCASE
+        );
+        CREATE TABLE IF NOT EXISTS proveedor(
+            id_proveedor INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre_proveedor TEXT NOT NULL UNIQUE COLLATE NOCASE        
+        );
         CREATE TABLE IF NOT EXISTS persona (
             id_persona INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre_persona TEXT NOT NULL,
-            departamento_proveedor_persona TEXT NOT NULL,
+            id_departamento,
+            id_proveedor,
             tipo_persona TEXT NOT NULL,
             id_autorizador INTEGER,
             rostro_embedding_persona BLOB NOT NULL,
@@ -41,8 +47,13 @@ def crear_tablas():
             firma_persona TEXT NOT NULL,
             ine_persona TEXT NOT NULL,
             telefono_persona TEXT NOT NULL,
-            FOREIGN KEY (id_autorizador) REFERENCES autorizador(id_autorizador)
-
+            FOREIGN KEY (id_autorizador) REFERENCES autorizador(id_autorizador),
+            FOREIGN KEY (id_departamento) REFERENCES departamento(id_departamento),
+            FOREIGN KEY (id_proveedor) REFERENCES proveedor(id_proveedor),
+            CHECK (
+            (tipo_persona = 'gobierno'  AND id_departamento IS NOT NULL AND id_proveedor IS NULL) OR
+            (tipo_persona = 'proveedor' AND id_proveedor    IS NOT NULL AND id_departamento IS NULL)
+            )
         );
         CREATE TABLE IF NOT EXISTS auditoria (
             id_auditoria INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -105,7 +116,8 @@ def crear_tablas():
             FOREIGN KEY (id_reglamento) REFERENCES reglamento(id_reglamento)  
 
         );
-            """)
+        """)
+        
         
         conexion.commit()
     finally:

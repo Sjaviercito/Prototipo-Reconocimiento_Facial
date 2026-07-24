@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Setup Personas</title>
+    <link rel="stylesheet" href="/static/setup_persona.css">
+</head>
+<body>
+    <h1>Setup local - Registro de personas</h1>
+
+    <p>Esta pantalla debe usarse desde la laptop local conectada a la cámara.</p>
+
+    <section>
+        <h2>Datos de la persona</h2>
+
+        <input type="text" id="nombre_persona" placeholder="Nombre completo">
+        <label for="tipo">Tipo de persona</label>
+        <select id="tipo">
+            <option value="gobierno">Gobierno</option>
+            <option value="proveedor">Proveedor</option>
+        </select>
+        <input type="text" id="telefono_persona" placeholder="Telefono">
+        <label for="autorizador_persona">Quien Autoriza</label>
+        <select id="autorizador_persona"></select>
+        <input type="email" id="correo_persona" placeholder="Correo">
+        <label for="organizaciones">Departamento / Proveedor</label>
+        <select id="organizaciones"></select>
+
+
+    </section>
+
+    <section>
+        <h2>Captura facial</h2>
+
+        <p id="contador-rostros">Rostros capturados: 0/5</p>
+
+        <button onclick="iniciarCamara()">Iniciar cámara</button>
+        <button id="boton-tomar-rostro" onclick="tomarRostro()">Tomar foto rostro</button>
+        <button onclick="cancelarCamara()">Cancelar captura</button>
+    </section>
+
+    <section>
+        <button onclick="registrarPersona()">Registrar persona</button>
+    </section>
+
+    <p id="mensaje"></p>
+
+    <script src="/static/auth.js"></script>
+    <script src="/static/setup_persona.js?v=4"></script>
+</body>
+</html>

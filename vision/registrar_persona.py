@@ -136,8 +136,13 @@ def generar_embedding_promedio(app, carpeta: str) ->bytes | None:
     return embedding_promedio.astype(np.float32).tobytes()
 def main():
     nombre = input("Nombre de la persona: ")
-    departamento = input("Departamento / Proveedor: ")
     tipo = input("Tipo (gobierno/proveedor): ")
+    if tipo == "gobierno":
+        id_departamento = int(input("ID departamento: "))
+        id_proveedor = None
+    else:
+        id_proveedor = int(input("ID proveedor: "))
+        id_departamento = None
     id_autorizador = int(input("ID autorizador: "))
     correo = input("Correo: ")
     telefono = input("Teléfono: ")
@@ -165,7 +170,7 @@ def main():
         return
 
     persona = DatosPersona(
-        nombre=nombre, departamento=departamento, tipo=tipo,
+        nombre=nombre, id_departamento=id_departamento, id_proveedor=id_proveedor, tipo=tipo,
         id_autorizador=id_autorizador, rostro=emb_blob, correo=correo,
         firma="pendiente", ine=ruta_ine, telefono=telefono
     )

@@ -2,14 +2,15 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class DatosPersona:
     nombre: str
-    departamento: str
     tipo: str
     telefono: str
-    id_autorizador : int
+    id_autorizador: int
     rostro: bytes
     correo: str
     firma: str
     ine: str
+    id_departamento: int | None = None
+    id_proveedor: int | None = None
 
 
 @dataclass(frozen=True)
