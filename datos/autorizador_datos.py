@@ -2,7 +2,7 @@ import os
 from datos.conexion import obtener_conexion
 import sqlite3
 
-def insertar_autorizador(nombre: str,puesto: str,departamento: str,correo: str, telefono: str) -> int:
+def insertar_autorizador(nombre: str,puesto: str,id_departamento: int,correo: str, telefono: str) -> int:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
@@ -10,12 +10,12 @@ def insertar_autorizador(nombre: str,puesto: str,departamento: str,correo: str, 
         INSERT INTO autorizador (
         nombre_autorizador,
         puesto_autorizador,
-        departamento_autorizador,
+        id_departamento,
         correo_autorizador,
         telefono_autorizador
         )
         VALUES (?, ?, ?, ?, ?)""",
-        (nombre, puesto, departamento, correo, telefono)
+        (nombre, puesto, id_departamento, correo, telefono)
     )
         conexion.commit()
         id_autorizador = cursor.lastrowid

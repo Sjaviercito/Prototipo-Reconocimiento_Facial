@@ -1,7 +1,7 @@
 const rolUsuario = localStorage.getItem('rol');
 let rostrosCapturados = 0;
 
-if (rolUsuario !== "admin") {
+if (token && rolUsuario !== "admin") {
     alert("Solo admin puede acceder al setup de operadores.");
     window.location.href = '/';
 }
@@ -20,8 +20,12 @@ async function iniciarCamara() {
         headers: {
             'Authorization': 'Bearer ' + token
         }
+        
     });
-
+    if (respuesta.status === 401) {
+        manejarNoAutorizado();
+        return;
+    }
     const datos = await respuesta.json();
 
     if (respuesta.ok) {
@@ -54,6 +58,10 @@ async function tomarRostro() {
         },
         body: formData
     });
+    if (respuesta.status === 401) {
+        manejarNoAutorizado();
+        return;
+    }
 
     const datos = await respuesta.json();
 
@@ -81,7 +89,10 @@ async function cancelarCamara() {
             'Authorization': 'Bearer ' + token
         }
     });
-
+    if (respuesta.status === 401) {
+        manejarNoAutorizado();
+        return;
+    }
     const datos = await respuesta.json();
 
     rostrosCapturados = 0;
@@ -124,7 +135,10 @@ async function registrarOperador() {
         },
         body: formData
     });
-
+    if (respuesta.status === 401) {
+        manejarNoAutorizado()
+        return;
+    }
     const datos = await respuesta.json();
 
     if (respuesta.ok) {
@@ -149,6 +163,5 @@ window.iniciarCamara = iniciarCamara;
 window.tomarRostro = tomarRostro;
 window.cancelarCamara = cancelarCamara;
 window.registrarOperador = registrarOperador;
-
 console.log("setup_operadores.js cargado correctamente");
 console.log("tomarRostro:", typeof tomarRostro);

@@ -16,7 +16,10 @@ async function iniciarCamara() {
             'Authorization': 'Bearer ' + token
         }
     });
-
+    if (respuesta.status === 401) {
+        manejarNoAutorizado();
+        return;
+    }
     const datos = await respuesta.json();
 
     if (respuesta.ok) {
@@ -49,7 +52,10 @@ async function tomarRostro() {
         },
         body: formData
     });
-
+    if (respuesta.status === 401) {
+        manejarNoAutorizado();
+        return;
+    }
     const datos = await respuesta.json();
 
     if (respuesta.ok) {
@@ -76,7 +82,10 @@ async function cancelarCamara() {
             'Authorization': 'Bearer ' + token
         }
     });
-
+    if (respuesta.status === 401) {
+        manejarNoAutorizado();
+        return;
+    }
     const datos = await respuesta.json();
 
     rostrosCapturados = 0;
@@ -91,7 +100,7 @@ async function  cargarAutorizadores() {
         headers: { 'Authorization': 'Bearer ' + token }
     });
     if (respuesta.status === 401) {
-        window.location.href = '/login-page';
+        manejarNoAutorizado();
         return;
     }
     const datos = await respuesta.json();
@@ -104,6 +113,25 @@ async function  cargarAutorizadores() {
         select.appendChild(opcion);
     }
     
+}
+async function cargarDepartamentos(){
+    const respuesta = await fetch('/departamentos', {
+        headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (respuesta.status === 401) {
+        manejarNoAutorizado();
+        return;
+    };
+    const datos = await respuesta.json();
+    const select = document.getElementById('departamentos');
+    select.innerHTML = '';
+    for (const item of datos[departamento]) {
+    const opcion = document.createElement('option');
+    opcion.value = item[id_departamento];
+    opcion.textContent = item[nombre_departamento];
+    select.appendChild(opcion);
+    }
+
 }
 async function cargarOrganizaciones() {
     const tipo = document.getElementById('tipo').value;
@@ -123,7 +151,7 @@ async function cargarOrganizaciones() {
         headers: { 'Authorization': 'Bearer ' + token }
     });
     if (respuesta.status === 401) {
-        window.location.href = '/login-page';
+        manejarNoAutorizado();
         return;
     }
     const datos = await respuesta.json();
@@ -148,12 +176,10 @@ async function registrarPersona() {
         mostrarMensaje("Completa todos los campos.");
         return;
     }
-
     if (rostrosCapturados < 5) {
         mostrarMensaje("Debes capturar 5 fotos de rostro.");
         return;
     }
-
     const formData = new FormData();
     formData.append('nombre', nombre);
     formData.append('tipo', tipo);
@@ -173,12 +199,14 @@ async function registrarPersona() {
         },
         body: formData
     });
-
+    if (respuesta.status === 401) {
+        manejarNoAutorizado();
+        return;
+    }
     const datos = await respuesta.json();
 
     if (respuesta.ok) {
         mostrarMensaje(datos.mensaje + " ID: " + datos.id_persona);
-
         document.getElementById('nombre_persona').value = '';
         document.getElementById('tipo').value = '';
         document.getElementById('telefono_persona').value = '';
@@ -193,6 +221,82 @@ async function registrarPersona() {
     }
 }
 
+async function agregarOrganizacion(){
+    const nuevaOrganizacion = document.getElementById('nueva-organizacion').value.trim();
+    const tipo = document.getElementById('tipo').value.trim();
+    let url;
+    if(tipo === 'gobierno'){
+        url = '/departamentos';
+    }else{
+        url = '/proveedores';
+    }
+    const formData = new FormData();
+    formData.append('nombre', nuevaOrganizacion)
+    const respuesta = await fetch(url, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: formData
+    });
+    if (respuesta.status === 401) {
+        manejarNoAutorizado();
+        return;
+    }
+    if (respuesta.ok) {
+    cargarOrganizaciones();
+    alert('Organización agregada correctamente');
+    document.getElementById('nueva-organizacion').value = '';
+    document.getElementById('form-nueva-organizacion').style.display = 'none';
+} else {
+    const datos = await respuesta.json();
+    alert(datos.detail || 'Error al agregar organización');
+}
+    }
+
+async function mostrarNuevaOrganizacion(){
+    document.getElementById('form-nueva-organizacion').style.display = 'block';
+}
+async function  mostrarNuevoAutorizador() {
+    document.getElementById('form-nuevo-autorizador').style.display = 'block';
+    
+}
+async function agregarAutorizador(){
+    const nombre = document.getElementById('nuevo-autorizador-nombre').value.trim();
+    const puesto = document.getElementById('nuevo-autorizador-puesto').value.trim();
+    const departamento = document.getElementById('nuevo-autorizador-departamento').value.trim();
+    const correo = document.getElementById('nuevo-autorizador-correo').value.trim();
+    const telefono = document.getElementById('nuevo-autorizador-telefono').value.trim();
+    
+    const formData = new FormData();
+    formData.append('nombre', nombre)
+    formData.append('puesto', puesto)
+    formData.append('id_departamento', departamento)
+    formData.append('correo', correo)
+    formData.append('telefono', telefono)
+    
+    const respuesta = await fetch('/autorizadores',{
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: formData
+    });
+    if (respuesta.status === 401) {
+        manejarNoAutorizado();
+        return;
+    }
+    if (respuesta.ok) {
+    cargarAutorizadores();
+    alert('Autorizador agregado correctamente');
+    document.getElementById('nuevo-autorizador-nombre').value = '';
+    document.getElementById('nuevo-autorizador-puesto').value = '';
+    document.getElementById('nuevo-autorizador-departamento').value = '';
+    document.getElementById('nuevo-autorizador-correo').value = '';
+    document.getElementById('nuevo-autorizador-telefono').value = '';
+    document.getElementById('form-nuevo-autorizador').style.display = 'none';
+    } else {
+    const datos = await respuesta.json();
+    alert(datos.detail || 'Error al agregar autorizador');
+}
+    }
+
 
 window.iniciarCamara = iniciarCamara;
 window.tomarRostro = tomarRostro;
@@ -203,3 +307,8 @@ console.log("setup_personas.js cargado correctamente");
 console.log("tomarRostro:", typeof tomarRostro);
 cargarAutorizadores();
 cargarOrganizaciones();
+cargarDepartamentos();
+window.mostrarNuevaOrganizacion = mostrarNuevaOrganizacion;
+window.agregarOrganizacion = agregarOrganizacion;
+window.mostrarNuevoAutorizador = mostrarNuevoAutorizador;
+window.agregarAutorizador = agregarAutorizador;

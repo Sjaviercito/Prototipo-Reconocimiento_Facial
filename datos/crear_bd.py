@@ -23,9 +23,10 @@ def crear_tablas():
             id_autorizador INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre_autorizador TEXT NOT NULL,
             puesto_autorizador TEXT NOT NULL,
-            departamento_autorizador TEXT NOT NULL,
+            id_departamento INTEGER NOT NULL,
             correo_autorizador TEXT NOT NULL,
-            telefono_autorizador TEXT NOT NULL
+            telefono_autorizador TEXT NOT NULL,
+            FOREIGN KEY (id_departamento) REFERENCES departamento(id_departamento)
         );
         CREATE TABLE IF NOT EXISTS departamento(
             id_departamento INTEGER PRIMARY KEY AUTOINCREMENT,

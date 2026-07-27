@@ -118,12 +118,12 @@ def crear_proveedor(nombre: str = Form(...), sesion: dict = Depends(verificar_se
 def crear_autorizador(
     nombre: str = Form(...),
     puesto: str = Form(...),
-    departamento: str = Form(...),
+    id_departamento: int = Form(...),
     correo: str = Form(...),
     telefono: str = Form(...),
     sesion: dict = Depends(verificar_sesion)
 ):
-    id_autorizador = insertar_autorizador(nombre, puesto, departamento, correo, telefono)
+    id_autorizador = insertar_autorizador(nombre, puesto, id_departamento, correo, telefono)
     return {"id_autorizador": id_autorizador, "nombre": nombre}
    
 @app.post("/autorizadores")

@@ -4,7 +4,7 @@ async function cargarBD() {
     });
 
     if (respuesta.status === 401) {
-        window.location.href = '/login-page';
+        manejarNoAutorizado();
         return;
     }
 
@@ -65,7 +65,10 @@ async function reiniciarBD() {
         method: 'DELETE',
         headers: { 'Authorization': 'Bearer ' + token }
     });
-
+    if (respuesta.status === 401) {
+        manejarNoAutorizado();
+        return;
+    }
     const datos = await respuesta.json();
 
     if (respuesta.ok) {

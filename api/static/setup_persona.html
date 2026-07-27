@@ -22,9 +22,23 @@
         <input type="text" id="telefono_persona" placeholder="Telefono">
         <label for="autorizador_persona">Quien Autoriza</label>
         <select id="autorizador_persona"></select>
+        <button type="button" onclick="mostrarNuevoAutorizador()">+</button>
+    <div id="form-nuevo-autorizador" style="display:none">
+        <input type="text" id="nuevo-autorizador-nombre" placeholder="Nombre">
+        <input type="text" id="nuevo-autorizador-puesto" placeholder="Puesto">
+        <select id="nuevo-autorizador-departamento"></select>
+        <input type="email" id="nuevo-autorizador-correo" placeholder="Correo">
+        <input type="text" id="nuevo-autorizador-telefono" placeholder="Teléfono">
+        <button type="button" onclick="agregarAutorizador()">Guardar</button>
+    </div>
         <input type="email" id="correo_persona" placeholder="Correo">
         <label for="organizaciones">Departamento / Proveedor</label>
         <select id="organizaciones"></select>
+        <button type="button" onclick="mostrarNuevaOrganizacion()">+</button>
+        <div id="form-nueva-organizacion" style="display:none">
+        <input type="text" id="nueva-organizacion" placeholder="Nombre nuevo">
+        <button type="button" onclick="agregarOrganizacion()">Guardar</button>
+        </div>
 
 
     </section>

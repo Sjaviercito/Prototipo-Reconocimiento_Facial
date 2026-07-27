@@ -7,7 +7,7 @@ async function cargarAdentro() {
         headers: { 'Authorization': 'Bearer ' + token }
     });
     if (respuesta.status === 401) {
-        window.location.href = '/login-page';
+        manejarNoAutorizado()
         return;
     }
     const datos = await respuesta.json();
@@ -30,7 +30,7 @@ async function cargarHistorial() {
         headers: { 'Authorization': 'Bearer ' + token }
     });
     if (respuesta.status === 401) {
-        window.location.href = '/login-page';
+        manejarNoAutorizado();
         return;
     }
     const datos = await respuesta.json();
@@ -58,7 +58,7 @@ async function cargarAuditoria() {
         headers: { 'Authorization': 'Bearer ' + token }
     });
     if (respuesta.status === 401) {
-        window.location.href = '/login-page';
+        manejarNoAutorizado();
         return;
     }
     const datos = await respuesta.json();
@@ -95,7 +95,7 @@ async function cargarReglamentoVigente() {
     });
 
     if (respuesta.status === 401) {
-        window.location.href = '/login-page';
+        manejarNoAutorizado();
         return;
     }
 
@@ -138,7 +138,10 @@ if (formReglamento) {
             },
             body: formData
         });
-
+        if (respuesta.status === 401) {
+        manejarNoAutorizado();
+        return;
+    }
         const datos = await respuesta.json();
 
         if (respuesta.ok) {
