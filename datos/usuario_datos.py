@@ -51,3 +51,9 @@ def obtener_todos_los_usuarios() -> list[sqlite3.Row]:
         return resultado
     finally:
         conexion.close()
+        
+        
+def obtener_todos_los_rostros_operadores() -> list[sqlite3.Row]:
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+    cursor.execute("SELECT id_usuario, rostro_embedding_usuario FROM usuario WHERE rostro_embedding_usuario IS NOT NULL")

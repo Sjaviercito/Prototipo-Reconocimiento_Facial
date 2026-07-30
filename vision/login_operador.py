@@ -19,6 +19,36 @@ print(f"Operadores cargados:     {len(operadores)}")
 app = FaceAnalysis(allowed_modules=['detection','recognition'])
 app.prepare(ctx_id=-1, det_size= DET_SIZE)
 
+def login_operador_web(pin_ingresado: str) -> dict:
+    cap = cv2.VideoCapture(0)
+    ret, frame = cap.read()
+    cap.release()
+    if not ret:
+        return {"ok": False, "mensaje": "No se pudo acceder a la cámara"}
+    faces = app.get(frame)
+    if len(faces) != 1:
+        return {"ok": False, "mensaje": "Se debe ver exactamente una cara"}
+    face = faces[0]
+    emb_vivo = face.embedding.astype(np.float32)
+    mejor_operador = None
+    mejor_similitud = -1
+    for id_usuario, nombre, username, pin_hash, emb_guardado in operadores:
+        similitud = np.dot(emb_vivo, emb_guardado) / (
+        np.linalg.norm(emb_vivo) * np.linalg.norm(emb_guardado)
+        )
+
+        if similitud > mejor_similitud:
+            mejor_similitud = similitud
+            mejor_operador = (id_usuario, nombre, username, pin_hash)
+
+    if mejor_similitud < UMBRAL_RECONOCIMIENTO:
+        return {"ok": False, "mensaje": "Operador no reconocido"}
+    if not es_cara_real(frame, face.bbox, session_spoof, input_name_spoof):
+        return {"ok": False, "mensaje": "Posible suplantación (spoof)"}
+    id_usuario, nombre, username, pin_hash = mejor_operador
+    if not bcrypt.checkpw(pin_ingresado.encode("utf-8"), pin_hash.encode("utf-8")):
+        return {"ok": False, "mensaje": "PIN incorrecto"}
+    return {"ok": True, "id_operador": id_usuario, "nombre": nombre}
 def login_operador():
     cap = cv2.VideoCapture(0)
     contador = 0

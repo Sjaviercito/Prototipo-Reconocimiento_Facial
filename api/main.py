@@ -28,6 +28,9 @@ from datos.departamento_datos import obtener_departamentos, insertar_departament
 from datos.proveedores_datos import obtener_proveedores, insertar_proveedor
 from datos.autorizador_datos import obtener_autorizadores, insertar_autorizador
 from datos.autorizador_datos import obtener_autorizadores, insertar_autorizador
+from utils.validaciones import validar_pin, validar_password
+from logica.gestion_operadores import validar_pin_unico
+from vision.login_operador import login_operador_web
 class FirmaData(BaseModel):
     imagen: str
 
@@ -37,7 +40,11 @@ captura_operadores = CapturaFacialUI("operadores")
 captura_personas = CapturaFacialUI("personas")
 app.mount("/static", StaticFiles(directory="api/static"), name="static")
 
-
+@app.get("/menu", response_class=HTMLResponse)
+def menu_local():
+    with open("api/static/menu.html", "r", encoding="utf-8") as f:
+        return f.read()
+    
 @app.get("/adentro")
 def quien_esta_adentro(sesion: dict = Depends(verificar_sesion)):
     visitas = obtener_visitas_abiertas()
@@ -220,6 +227,8 @@ def ver_base_de_datos(sesion: dict = Depends(verificar_sesion)):
     return {"tablas": tablas}
 
 
+
+
 @app.delete("/admin/bd")
 def reiniciar_bd(sesion: dict = Depends(verificar_sesion)):
     if os.getenv("MODO_DEV") != "true":
@@ -287,14 +296,18 @@ def registrar_operador_setup(
 
     if rol not in ["admin", "operador"]:
         raise HTTPException(status_code=400, detail="Rol inválido")
-
+    try:
+        validar_pin(pin)
+        validar_pin_unico(pin)
+        validar_password(password)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    pin_hash = bcrypt.hashpw(pin.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
     embedding_blob = captura_operadores.obtener_embedding_promedio_blob()
 
     if embedding_blob is None:
         raise HTTPException(status_code=400, detail="Debes capturar 5 fotos de rostro")
-
-    password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-    pin_hash = bcrypt.hashpw(pin.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
     usuario = DatosUsuario(
         nombre=nombre,
@@ -318,7 +331,10 @@ def registrar_operador_setup(
 def setup_persona_page():
     with open("api/static/setup_persona.html", "r", encoding="utf-8") as f:
         return f.read()
-    
+
+@app.get("/gestionar-visita/login-operador", response_class=HTMLResponse)
+
+
 @app.post("/setup/personas/camara/iniciar")
 def iniciar_camara_persona(sesion: dict = Depends(verificar_sesion)):
     resultado = captura_personas.iniciar()
@@ -390,6 +406,13 @@ def registrar_persona_setup(
         "mensaje": "Persona registrado correctamente",
         "id_persona": id_persona
     }
+    
+@app.post("/gestionar-visita/login-operador")
+def login_operador_fichaje(pin: str = Form(...)):
+    resultado = login_operador_web(pin)
+    if not resultado["ok"]:
+        raise HTTPException(status_code=401, detail=resultado["mensaje"])
+    return resultado
     
 @app.post("/firma/guardar")
 def guardar_firma(datos: FirmaData):
