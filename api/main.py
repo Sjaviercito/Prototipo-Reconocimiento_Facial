@@ -4,6 +4,7 @@ from fastapi.responses import HTMLResponse
 from fastapi import HTTPException
 from pydantic import BaseModel
 import bcrypt
+import cv2
 from datos.usuario_datos import obtener_usuario_por_username
 from api.seguridad import crear_token
 from fastapi import Depends
@@ -23,6 +24,7 @@ from logica.gestion_operadores import registrar_usuario
 from dominio import DatosUsuario, DatosPersona
 from logica.notificaciones import notificar_nuevo_reglamento
 import base64
+from config import ENTRADAS_DIR
 from datetime import datetime
 from datos.departamento_datos import obtener_departamentos, insertar_departamento
 from datos.proveedores_datos import obtener_proveedores, insertar_proveedor
@@ -31,6 +33,10 @@ from datos.autorizador_datos import obtener_autorizadores, insertar_autorizador
 from utils.validaciones import validar_pin, validar_password
 from logica.gestion_operadores import validar_pin_unico
 from vision.login_operador import login_operador_web
+from vision.reconocimiento_visitante import reconocer_visitante_web
+from logica.gestion_visitas import registrar_entrada, registrar_salida
+from datos.visita_datos import tiene_visita_abierta
+from logica.gestion_reglamento import persona_puede_entrar
 class FirmaData(BaseModel):
     imagen: str
 
@@ -226,9 +232,6 @@ def ver_base_de_datos(sesion: dict = Depends(verificar_sesion)):
     tablas = obtener_todas_las_tablas_con_registros()
     return {"tablas": tablas}
 
-
-
-
 @app.delete("/admin/bd")
 def reiniciar_bd(sesion: dict = Depends(verificar_sesion)):
     if os.getenv("MODO_DEV") != "true":
@@ -332,7 +335,10 @@ def setup_persona_page():
     with open("api/static/setup_persona.html", "r", encoding="utf-8") as f:
         return f.read()
 
-@app.get("/gestionar-visita/login-operador", response_class=HTMLResponse)
+@app.get("/gestionar-visita", response_class=HTMLResponse)
+def gestionar_visita_page():
+    with open("api/static/gestionar_visita.html", "r", encoding="utf-8") as f:
+        return f.read()
 
 
 @app.post("/setup/personas/camara/iniciar")
@@ -413,12 +419,53 @@ def login_operador_fichaje(pin: str = Form(...)):
     if not resultado["ok"]:
         raise HTTPException(status_code=401, detail=resultado["mensaje"])
     return resultado
-    
+
+@app.post("/gestionar-visita/procesar")
+def procesar_visita(
+    id_operador: int = Form(...),
+    sesion: dict = Depends(verificar_sesion)
+):
+    # 1. reconocer al visitante (captura el frame)
+    reconocimiento = reconocer_visitante_web()
+    if not reconocimiento["ok"]:
+        raise HTTPException(status_code=404, detail=reconocimiento["mensaje"])
+    id_persona = reconocimiento["id_persona"]
+    frame = reconocimiento["frame"]
+    # 2. guardar el frame como evidencia
+    os.makedirs(ENTRADAS_DIR, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    nombre_foto = f"visita_{id_persona}_{timestamp}.jpg"
+    ruta_foto = os.path.join(ENTRADAS_DIR, nombre_foto)
+    cv2.imwrite(ruta_foto, frame)
+
+    # 3. decidir entrada o salida
+    if tiene_visita_abierta(id_persona):
+        # SALIDA
+        try:
+            id_visita = registrar_salida(id_persona, id_operador, ruta_foto)
+            return {"ok": True, "tipo": "salida",
+                    "nombre": reconocimiento["nombre"], "id_visita": id_visita}
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+    else:
+        # ENTRADA — verificar reglamento
+        verificacion = persona_puede_entrar(id_persona)
+        if verificacion["estado"] == "sin_reglamento":
+            raise HTTPException(status_code=400, detail="No hay reglamento vigente")
+        if verificacion["estado"] == "no_acepto":
+            raise HTTPException(status_code=409,
+                detail="La persona no ha aceptado el reglamento vigente")
+        try:
+            id_visita = registrar_entrada(id_persona, id_operador, ruta_foto, "facial")
+            return {"ok": True, "tipo": "entrada",
+                    "nombre": reconocimiento["nombre"], "id_visita": id_visita}
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
 @app.post("/firma/guardar")
 def guardar_firma(datos: FirmaData):
     # quitar el prefijo "data:image/png;base64,"
     _, base64_puro = datos.imagen.split(",", 1)
-
     # decodificar base64 a bytes
     imagen_bytes = base64.b64decode(base64_puro)
 

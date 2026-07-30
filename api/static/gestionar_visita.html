@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestionar Visita</title>
+</head>
+<body>
+    <h1>Gestionar Visita</h1>
+
+    <!-- Estado 1: login del operador -->
+    <section id="seccion-login">
+        <h2>Iniciar sesión de fichaje</h2>
+        <input type="password" id="pin" placeholder="PIN del operador">
+        <button onclick="loginOperador()">Iniciar (cara + PIN)</button>
+    </section>
+
+    <!-- Estado 2: sesión abierta -->
+    <section id="seccion-fichaje" style="display:none">
+        <h2>Sesión activa: <span id="nombre-operador"></span></h2>
+        <button onclick="ficharVisitante()">Fichar visitante</button>
+        <button onclick="cerrarSesion()">Cerrar sesión</button>
+        <p id="resultado"></p>
+    </section>
+
+    <script src="/static/auth.js"></script>
+    <script src="/static/gestionar_visita.js"></script>
+</body>
+</html>

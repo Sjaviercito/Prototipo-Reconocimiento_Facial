@@ -19,36 +19,35 @@ print(f"Operadores cargados:     {len(operadores)}")
 app = FaceAnalysis(allowed_modules=['detection','recognition'])
 app.prepare(ctx_id=-1, det_size= DET_SIZE)
 
+import bcrypt
+import numpy as np
+from vision.reconocimiento import capturar_y_reconocer
+from datos.operador_datos import obtener_rostros_operadores
+from datos.usuario_datos import obtener_usuario
+
+
 def login_operador_web(pin_ingresado: str) -> dict:
-    cap = cv2.VideoCapture(0)
-    ret, frame = cap.read()
-    cap.release()
-    if not ret:
-        return {"ok": False, "mensaje": "No se pudo acceder a la cámara"}
-    faces = app.get(frame)
-    if len(faces) != 1:
-        return {"ok": False, "mensaje": "Se debe ver exactamente una cara"}
-    face = faces[0]
-    emb_vivo = face.embedding.astype(np.float32)
-    mejor_operador = None
-    mejor_similitud = -1
-    for id_usuario, nombre, username, pin_hash, emb_guardado in operadores:
-        similitud = np.dot(emb_vivo, emb_guardado) / (
-        np.linalg.norm(emb_vivo) * np.linalg.norm(emb_guardado)
-        )
+    # preparar lista (id, embedding) de operadores
+    operadores_bd = obtener_rostros_operadores()
+    lista = []
+    for id_usuario, nombre, username, pin_hash, blob in operadores_bd:
+        embedding = np.frombuffer(blob, dtype=np.float32)
+        lista.append((id_usuario, embedding))
 
-        if similitud > mejor_similitud:
-            mejor_similitud = similitud
-            mejor_operador = (id_usuario, nombre, username, pin_hash)
+    # reconocer con el método común
+    resultado = capturar_y_reconocer(lista)
+    if not resultado["ok"]:
+        return resultado
 
-    if mejor_similitud < UMBRAL_RECONOCIMIENTO:
-        return {"ok": False, "mensaje": "Operador no reconocido"}
-    if not es_cara_real(frame, face.bbox, session_spoof, input_name_spoof):
-        return {"ok": False, "mensaje": "Posible suplantación (spoof)"}
-    id_usuario, nombre, username, pin_hash = mejor_operador
+    # buscar el operador reconocido para verificar su PIN
+    id_operador = resultado["id"]
+    operador = obtener_usuario(id_operador)
+    pin_hash = operador["pin_hash_usuario"]
+
     if not bcrypt.checkpw(pin_ingresado.encode("utf-8"), pin_hash.encode("utf-8")):
         return {"ok": False, "mensaje": "PIN incorrecto"}
-    return {"ok": True, "id_operador": id_usuario, "nombre": nombre}
+
+    return {"ok": True, "id_operador": id_operador, "nombre": operador["nombre_usuario"]}
 def login_operador():
     cap = cv2.VideoCapture(0)
     contador = 0

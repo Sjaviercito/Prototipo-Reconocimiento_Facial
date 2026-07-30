@@ -123,12 +123,12 @@ async function cargarDepartamentos(){
         return;
     };
     const datos = await respuesta.json();
-    const select = document.getElementById('departamentos');
+    const select = document.getElementById('nuevo-autorizador-departamento');
     select.innerHTML = '';
-    for (const item of datos[departamento]) {
+    for (const item of datos['departamentos']) {
     const opcion = document.createElement('option');
-    opcion.value = item[id_departamento];
-    opcion.textContent = item[nombre_departamento];
+    opcion.value = item['id_departamento'];
+    opcion.textContent = item['nombre_departamento'];
     select.appendChild(opcion);
     }
 
