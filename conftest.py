@@ -5,6 +5,15 @@ from datos import persona_datos, autorizador_datos, usuario_datos, departamento_
 from dominio import DatosPersona, DatosUsuario
 
 @pytest.fixture
+def con_firma_pendiente(base_temporal):
+    from datos import reglamento_datos
+    from logica.gestion_reglamento import registrar_aceptacion
+
+    # necesitas un reglamento vigente para poder aceptar
+    id_reglamento = reglamento_datos.insertar_reglamento("ruta/reglamento.pdf", "v1", 1)
+    # registrar aceptación con firma → deja ruta_firma NULL, token lleno = pendiente
+    registrar_aceptacion(id_persona=1, id_reglamento=id_reglamento, id_usuario=1, con_firma=True)
+@pytest.fixture
 def base_temporal(monkeypatch):
     ruta_prueba = "test_bitacora.db"
     monkeypatch.setattr("datos.conexion.BD_PATH", ruta_prueba)

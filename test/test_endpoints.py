@@ -27,3 +27,21 @@ def test_crear_departamento_duplicado(base_temporal):
     client.post("/departamentos", data={"nombre": "Duplicado"})
     respuesta = client.post("/departamentos", data={"nombre": "Duplicado"})
     assert respuesta.status_code == 400
+    
+    
+def test_firmas_pendientes_lista(con_firma_pendiente):
+    respuesta = client.get("/firmas-pendientes")
+    assert respuesta.status_code == 200
+    pendientes = respuesta.json()["pendientes"]
+    assert len(pendientes) == 1
+    assert pendientes[0]["nombre_persona"] == "Luis"
+
+
+def test_regenerar_token(con_firma_pendiente):
+    # sacar el id_firma de la pendiente
+    pendientes = client.get("/firmas-pendientes").json()["pendientes"]
+    id_firma = pendientes[0]["id_firma"]
+    # regenerar
+    respuesta = client.post(f"/firmas-pendientes/{id_firma}/regenerar")
+    assert respuesta.status_code == 200
+    assert "token" in respuesta.json()
