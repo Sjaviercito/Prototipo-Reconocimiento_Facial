@@ -26,8 +26,6 @@ for id_persona, blob in rostros_bd:
 
 app = FaceAnalysis(allowed_modules=['detection', 'recognition'])
 app.prepare(ctx_id=-1, det_size= DET_SIZE)
-
-
 id_usuario_actual = login_operador()
 
 if id_usuario_actual is None:

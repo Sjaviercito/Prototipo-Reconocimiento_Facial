@@ -57,3 +57,14 @@ def obtener_todos_los_rostros_operadores() -> list[sqlite3.Row]:
     conexion = obtener_conexion()
     cursor = conexion.cursor()
     cursor.execute("SELECT id_usuario, rostro_embedding_usuario FROM usuario WHERE rostro_embedding_usuario IS NOT NULL")
+
+
+def obtener_pines_usuarios() -> list[sqlite3.Row]:
+    conexion = obtener_conexion()
+    try:
+        cursor = conexion.cursor()
+        cursor.execute("SELECT id_usuario, pin_hash_usuario FROM usuario WHERE pin_hash_usuario != ''")
+        resultado = cursor.fetchall()
+        return resultado
+    finally:
+        conexion.close()

@@ -216,9 +216,34 @@ async function registrarPersona() {
         rostrosCapturados = 0;
         document.getElementById('contador-rostros').textContent = 'Rostros capturados: 0/5';
         document.getElementById('boton-tomar-rostro').disabled = false;
+        const qr = document.getElementById('qr-firma');
+        qr.src = '/qr-firma/' + datos.token;
+        qr.style.display = 'block';
+        mostrarMensaje('Escanea el QR para firmar el reglamento.');
+        iniciarPolling(datos.token); 
     } else {
         mostrarMensaje(datos.detail || 'Error al registrar persona');
     }
+}
+function iniciarPolling(token) {
+    const LIMITE_MS = 10 * 60 *1000;
+    const inicio = Date.now();
+    const intervalo = setInterval(async () => {
+        if (Date.now() - inicio > LIMITE_MS){
+            clearInterval(intervalo);
+            document.getElementById('qr-firma').style.display = 'none';
+            mostrarMensaje('El enlace de firma expiró. La persona quedo sin firma')
+            return;
+        }
+        const respuesta = await fetch('/firma-estado/' + token);
+        const datos = await respuesta.json();
+
+        if (datos.firmado) {
+            clearInterval(intervalo);          // deja de preguntar
+            document.getElementById('qr-firma').style.display = 'none';
+            mostrarMensaje('✓ Firma recibida. Registro completo.');
+        }
+    }, 2000);   // pregunta cada 2 segundos
 }
 
 async function agregarOrganizacion(){

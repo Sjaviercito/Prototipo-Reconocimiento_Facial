@@ -101,6 +101,8 @@ def crear_tablas():
             tipo_firma TEXT NOT NULL,
             ruta_firma TEXT,
             id_usuario INTEGER NOT NULL,
+            token_firma TEXT UNIQUE,
+            token_expira TEXT,
             FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
             FOREIGN KEY (id_persona) REFERENCES persona(id_persona),
             FOREIGN KEY (id_reglamento) REFERENCES reglamento(id_reglamento)

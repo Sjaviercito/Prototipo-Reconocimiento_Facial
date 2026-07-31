@@ -1,4 +1,8 @@
 from fastapi import FastAPI
+import qrcode
+import io
+from fastapi import Response
+from config import URL_BASE
 from datos.visita_datos import obtener_visitas_abiertas, obtener_todas_las_visitas
 from fastapi.responses import HTMLResponse
 from fastapi import HTTPException
@@ -36,7 +40,8 @@ from vision.login_operador import login_operador_web
 from vision.reconocimiento_visitante import reconocer_visitante_web
 from logica.gestion_visitas import registrar_entrada, registrar_salida
 from datos.visita_datos import tiene_visita_abierta
-from logica.gestion_reglamento import persona_puede_entrar
+from logica.gestion_reglamento import persona_puede_entrar, regenerar_token
+from datos.firma_datos import obtener_firma_por_token, actualizar_ruta_firma, obtener_firmas_pendientes
 class FirmaData(BaseModel):
     imagen: str
 
@@ -170,10 +175,35 @@ def ver_reglamento_vigente(sesion: dict = Depends(verificar_sesion)):
             "nombre_version": reglamento[2]
         }
     }
+@app.get("/qr-firma/{token}")
+def generar_qr_firma(token: str):
+    url = f"{URL_BASE}/firmar/{token}"
+    img = qrcode.make(url)
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG")
+    return Response(content=buffer.getvalue(), media_type="image/png")   
+
+@app.get("/firmar/{token}", response_class=HTMLResponse)
+def pagina_firma(token: str):
+    firma = obtener_firma_por_token(token)
+    if firma is None:
+        return HTMLResponse("<h1>Enlace inválido</h1>", status_code=404)
+    if datetime.now() > datetime.strptime(firma["token_expira"], "%Y-%m-%d %H:%M:%S"):
+        return HTMLResponse("<h1>Este enlace ha expirado</h1>", status_code=410)
+    with open("api/static/firma.html", "r", encoding="utf-8") as f:
+        return f.read()
+
 @app.get("/firma", response_class=HTMLResponse)
 def firma_page():
     with open("api/static/firma.html", "r", encoding="utf-8") as f:
         return f.read()
+@app.get("/firma-estado/{token}")
+def firma_estado(token: str):
+    firma = obtener_firma_por_token(token)
+    if firma is None:
+        raise HTTPException(404, "Token inválido")
+    firmado = firma["ruta_firma"] is not None
+    return {"firmado": firmado}
 @app.post("/reglamentos")
 async def subir_reglamento(
     nombre_version: str = Form(...),
@@ -261,7 +291,14 @@ def iniciar_camara_operador(sesion: dict = Depends(verificar_sesion)):
         raise HTTPException(status_code=400, detail=resultado["mensaje"])
 
     return resultado
+@app.get("/firmas-pendientes")
+def listar_firmas_pendientes(sesion: dict = Depends(verificar_sesion)):
+    return {"pendientes": [dict(f) for f in obtener_firmas_pendientes()]}
 
+@app.post("/firmas-pendientes/{id_firma}/regenerar")
+def regenerar_qr(id_firma: int, sesion: dict = Depends(verificar_sesion)):
+    token = regenerar_token(id_firma)
+    return {"token": token}
 @app.post("/setup/operadores/camara/rostro")
 def tomar_rostro_operador(
     nombre_operador: str = Form(...),
@@ -330,6 +367,7 @@ def registrar_operador_setup(
         "mensaje": "Operador registrado correctamente",
         "id_usuario": id_usuario
     }
+
 @app.get("/setup/personas", response_class=HTMLResponse)
 def setup_persona_page():
     with open("api/static/setup_persona.html", "r", encoding="utf-8") as f:
@@ -339,7 +377,6 @@ def setup_persona_page():
 def gestionar_visita_page():
     with open("api/static/gestionar_visita.html", "r", encoding="utf-8") as f:
         return f.read()
-
 
 @app.post("/setup/personas/camara/iniciar")
 def iniciar_camara_persona(sesion: dict = Depends(verificar_sesion)):
@@ -357,7 +394,6 @@ def tomar_rostro_persona(
     nombre_persona: str = Form(...),
     sesion: dict = Depends(verificar_sesion)
 ):  
-
     resultado = captura_personas.tomar_foto_rostro(nombre_persona)
 
     if not resultado["ok"]:
@@ -403,16 +439,14 @@ def registrar_persona_setup(
         firma="pendiente",
         ine="pendiente"
     )
-    id_persona = registrar_persona(persona, sesion["id_usuario"])
+    resultado = registrar_persona(persona, sesion["id_usuario"])
     captura_personas.confirmar_y_guardar(nombre)
-
     captura_personas.cerrar()
-
     return {
-        "mensaje": "Persona registrado correctamente",
-        "id_persona": id_persona
+        "mensaje": "Persona registrada correctamente",
+        "id_persona": resultado["id_persona"],
+        "token": resultado["token"]
     }
-    
 @app.post("/gestionar-visita/login-operador")
 def login_operador_fichaje(pin: str = Form(...)):
     resultado = login_operador_web(pin)
@@ -478,3 +512,26 @@ def guardar_firma(datos: FirmaData):
         f.write(imagen_bytes)
 
     return {"ruta": ruta}
+
+class FirmaData(BaseModel):
+    firma: str
+
+@app.post("/firmar/{token}")
+def guardar_firma(token: str, datos: FirmaData):
+    firma = obtener_firma_por_token(token)
+    if firma is None:
+        raise HTTPException(404, "Token inválido")
+    if datetime.now() > datetime.strptime(firma["token_expira"], "%Y-%m-%d %H:%M:%S"):
+        raise HTTPException(410, "El enlace ha expirado")
+
+    encabezado, base64_puro = datos.firma.split(",", 1)
+    imagen_bytes = base64.b64decode(base64_puro)
+
+    import os
+    os.makedirs(FIRMAS_DIR, exist_ok=True)
+    ruta = os.path.join(FIRMAS_DIR, f"firma_{token}.png")
+    with open(ruta, "wb") as f:
+        f.write(imagen_bytes)
+
+    actualizar_ruta_firma(token, ruta)
+    return {"ok": True}

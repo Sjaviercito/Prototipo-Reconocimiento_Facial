@@ -1,6 +1,8 @@
 from datos.reglamento_datos import obtener_reglamento_vigente
-from datos.firma_datos import obtener_firma, insertar_firma
+from datos.firma_datos import obtener_firma, insertar_firma, actualizar_token
 from datos.auditoria_datos import insertar_auditoria
+import uuid
+from datetime import datetime, timedelta
 def persona_puede_entrar(id_persona: int) -> dict:
     vigente = obtener_reglamento_vigente()
     if vigente is None:
@@ -11,7 +13,23 @@ def persona_puede_entrar(id_persona: int) -> dict:
         return {"estado": "no_acepto", "reglamento": vigente}
     else:
         return {"estado": "acepto", "reglamento": vigente}
-def registrar_aceptacion(id_persona: int, id_reglamento: int, id_usuario: int) -> int:
-    id_firma = insertar_firma(id_persona, id_reglamento, tipo_firma="aceptacion_manual", id_usuario=id_usuario)
-    insertar_auditoria(id_usuario=id_usuario, accion="Aceptacion Reglamento", tabla_afectada="firma", id_registro_afectado=id_firma)
-    return id_firma
+def registrar_aceptacion(id_persona, id_reglamento, id_usuario, con_firma=False):
+    token = None
+    expira = None
+    if con_firma:
+        token = str(uuid.uuid4())
+        expira = (datetime.now() + timedelta(minutes=10)).strftime("%Y-%m-%d %H:%M:%S")
+    
+    tipo = "firma_manuscrita" if con_firma else "aceptacion_manual"
+    id_firma = insertar_firma(id_persona, id_reglamento, tipo, id_usuario, token_firma=token, token_expira=expira)
+    return {"id_firma": id_firma, "token": token}
+
+def generar_token_firma() -> tuple[str, str]:
+    token = str(uuid.uuid4())
+    expira = (datetime.now() + timedelta(minutes=10)).strftime("%Y-%m-%d %H:%M:%S")
+    return token, expira
+
+def regenerar_token(id_firma: int) -> str:
+    token, expira = generar_token_firma()
+    actualizar_token(id_firma, token, expira)
+    return token

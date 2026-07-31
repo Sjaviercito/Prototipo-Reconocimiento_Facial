@@ -5,6 +5,7 @@ UMBRAL_RECONOCIMIENTO = 0.6
 UMBRAL_DETECCION_ENROLAMIENTO = 0.80
 DET_SIZE = (320,320)
 TOTAL_FOTOS_ENROLAMIENTO = 5
+URL_BASE = "http://172.28.29.85:8000"
 
 BD_DIR = os.path.join(BASE_DIR, "bd")
 BD_PATH = os.path.join(BD_DIR, "bitacora.db")
@@ -12,7 +13,6 @@ BD_PATH = os.path.join(BD_DIR, "bitacora.db")
 CARAS_DIR = os.path.join(BASE_DIR, "caras")
 DATA_DIR = os.path.join(BASE_DIR, "data")
 MODELS_DIR = os.path.join(BASE_DIR, "models")
-
 MODELO_ANTISPOOF_PATH = os.path.join(MODELS_DIR, "best_model_quantized.onnx")
 
 EVIDENCIAS_DIR = os.path.join(BASE_DIR, "evidencias")

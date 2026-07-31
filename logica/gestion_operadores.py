@@ -1,7 +1,7 @@
 from datos.usuario_datos import insertar_usuario
 from datos.auditoria_datos import insertar_auditoria
 from dominio import DatosUsuario
-from datos.usuario_datos import obtener_todos_los_usuarios
+from datos.usuario_datos import obtener_pines_usuarios
 import bcrypt
 def registrar_usuario(usuario: DatosUsuario, id_usuario_registra: int) -> int:
     id_usuario_nuevo = insertar_usuario(usuario)
@@ -16,7 +16,7 @@ def registrar_usuario(usuario: DatosUsuario, id_usuario_registra: int) -> int:
 
 
 def validar_pin_unico(pin: str) -> None:
-    usuarios = obtener_todos_los_usuarios()
+    usuarios = obtener_pines_usuarios()
     for usuario in usuarios:
         if bcrypt.checkpw(pin.encode('utf-8'), usuario["pin_hash_usuario"].encode('utf-8')):
             raise ValueError("Ese PIN ya está en uso")

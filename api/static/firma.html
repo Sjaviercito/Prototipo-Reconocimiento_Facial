@@ -5,59 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Firma</title>
     <style>
-        body { text-align: center; font-family: sans-serif; }
-        #canvas-firma {
-            border: 2px solid #333;
-            touch-action: none;   /* clave para táctil, ahorita te explico */
-            background: white;
-        }
+        body { font-family: sans-serif; text-align: center; padding: 20px; }
+        #canvas-firma { border: 2px solid #333; touch-action: none; background: white; }
+        button { padding: 12px 24px; font-size: 16px; margin: 8px; }
     </style>
 </head>
 <body>
-    <h2>Firma aquí</h2>
+    <h2>Firma de aceptación del reglamento</h2>
+    <p>Firma dentro del recuadro</p>
     <canvas id="canvas-firma" width="400" height="200"></canvas>
-    <br>
-    <button onclick="limpiar()">Limpiar</button>
-    <button onclick="guardar()">Guardar</button>
+    <div>
+        <button onclick="limpiar()">Limpiar</button>
+        <button onclick="guardar()">Guardar firma</button>
+    </div>
+    <p id="mensaje"></p>
 
     <script>
+        // el token viene en la URL: /firmar/{token}
+        const token = window.location.pathname.split('/').pop();
         const canvas = document.getElementById('canvas-firma');
         const ctx = canvas.getContext('2d');
         let dibujando = false;
 
-        function posicion(evento) {
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+
+        // obtener coordenadas (funciona con mouse y touch)
+        function obtenerPos(e) {
             const rect = canvas.getBoundingClientRect();
-            const punto = evento.touches ? evento.touches[0] : evento;
-            return {
-                x: punto.clientX - rect.left,
-                y: punto.clientY - rect.top
-            };
+            const punto = e.touches ? e.touches[0] : e;
+            return { x: punto.clientX - rect.left, y: punto.clientY - rect.top };
         }
 
-        function empezar(evento) {
+        function iniciar(e) {
+            e.preventDefault();
             dibujando = true;
-            const p = posicion(evento);
+            const pos = obtenerPos(e);
             ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            evento.preventDefault();
+            ctx.moveTo(pos.x, pos.y);
         }
-
-        function mover(evento) {
+        function mover(e) {
+            e.preventDefault();
             if (!dibujando) return;
-            const p = posicion(evento);
-            ctx.lineTo(p.x, p.y);
+            const pos = obtenerPos(e);
+            ctx.lineTo(pos.x, pos.y);
             ctx.stroke();
-            evento.preventDefault();
         }
-
-        function terminar() {
+        function terminar(e) {
+            e.preventDefault();
             dibujando = false;
         }
 
-        canvas.addEventListener('mousedown', empezar);
+        // mouse
+        canvas.addEventListener('mousedown', iniciar);
         canvas.addEventListener('mousemove', mover);
         canvas.addEventListener('mouseup', terminar);
-        canvas.addEventListener('touchstart', empezar);
+        // touch (dedo/lápiz)
+        canvas.addEventListener('touchstart', iniciar);
         canvas.addEventListener('touchmove', mover);
         canvas.addEventListener('touchend', terminar);
 
@@ -66,19 +71,19 @@
         }
 
         async function guardar() {
-        const imagenBase64 = canvas.toDataURL('image/png');
-
-        const respuesta = await fetch('/firma/guardar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imagen: imagenBase64 })
-        });
-        if (respuesta.ok) {
-        const datos = await respuesta.json();
-        alert('Firma guardada: ' + datos.ruta);
-        } else {
-        alert('Error al guardar la firma');
-        }
+            const imagenBase64 = canvas.toDataURL('image/png');
+            const respuesta = await fetch('/firmar/' + token, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ firma: imagenBase64 })
+            });
+            const datos = await respuesta.json();
+            const mensaje = document.getElementById('mensaje');
+            if (respuesta.ok) {
+                mensaje.textContent = 'Firma guardada. Puede cerrar esta ventana.';
+            } else {
+                mensaje.textContent = datos.detail || 'Error al guardar';
+            }
         }
     </script>
 </body>
