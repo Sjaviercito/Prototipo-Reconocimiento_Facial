@@ -29,3 +29,6 @@ Thumbs.db
 .env
 
 bd/
+
+# Notas personales, no para el repo publico
+CLAUDE.md
