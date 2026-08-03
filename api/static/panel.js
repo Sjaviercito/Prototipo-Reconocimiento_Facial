@@ -106,14 +106,12 @@ async function cargarReglamentoVigente() {
         contenedor.innerHTML = 'No hay reglamento vigente.';
         return;
     }
-
     contenedor.innerHTML = `
         <p><strong>Versión:</strong> ${datos.reglamento.nombre_version}</p>
         <p><strong>Ruta PDF:</strong> ${datos.reglamento.ruta_pdf}</p>
     `;
 }
 const formReglamento = document.getElementById('form-reglamento');
-
 if (formReglamento) {
     formReglamento.addEventListener('submit', async function(event) {
         event.preventDefault();
@@ -154,5 +152,6 @@ if (formReglamento) {
         }
     });
 }
+
 actualizar_todo();
 setInterval(actualizar_todo, 10000);

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firmar por QR</title>
+</head>
+<body>
+    <h2>Escanea el código para firmar</h2>
+    <img id="qr-imagen">
+    <p id="mensaje">Esperando firma...</p>
+
+    <script>
+        // el token viene en la URL: /ver-qr/{token}
+        const token = window.location.pathname.split('/').pop();
+
+        document.getElementById('qr-imagen').src = '/qr-firma/' + token;
+
+        const intervalo = setInterval(async () => {
+            const respuesta = await fetch('/firma-estado/' + token);
+            const datos = await respuesta.json();
+            if (datos.firmado === true) {
+                clearInterval(intervalo);
+                document.getElementById('mensaje').textContent = 'Firma completada. Ya puede cerrar esta ventana.';
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

@@ -12,7 +12,8 @@ def con_firma_pendiente(base_temporal):
     # necesitas un reglamento vigente para poder aceptar
     id_reglamento = reglamento_datos.insertar_reglamento("ruta/reglamento.pdf", "v1", 1)
     # registrar aceptación con firma → deja ruta_firma NULL, token lleno = pendiente
-    registrar_aceptacion(id_persona=1, id_reglamento=id_reglamento, id_usuario=1, con_firma=True)
+    aceptacion = registrar_aceptacion(id_persona=1, id_reglamento=id_reglamento, id_usuario=1, con_firma=True)
+    yield aceptacion
 @pytest.fixture
 def base_temporal(monkeypatch):
     ruta_prueba = "test_bitacora.db"

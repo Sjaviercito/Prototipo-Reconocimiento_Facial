@@ -26,7 +26,7 @@ from datos.admin_bd_datos import obtener_todas_las_tablas_con_registros, reinici
 from vision.captura_facial import CapturaFacialUI
 from logica.gestion_operadores import registrar_usuario
 from dominio import DatosUsuario, DatosPersona
-from logica.notificaciones import notificar_nuevo_reglamento
+from logica.notificaciones import notificar_nuevo_reglamento, notificar_acuse_firmado
 import base64
 from config import ENTRADAS_DIR
 from datetime import datetime
@@ -41,7 +41,10 @@ from vision.reconocimiento_visitante import reconocer_visitante_web
 from logica.gestion_visitas import registrar_entrada, registrar_salida
 from datos.visita_datos import tiene_visita_abierta
 from logica.gestion_reglamento import persona_puede_entrar, regenerar_token
-from datos.firma_datos import obtener_firma_por_token, actualizar_ruta_firma, obtener_firmas_pendientes
+from datos.firma_datos import obtener_firma_por_token, actualizar_ruta_firma
+from utils.generar_acuse import generar_acuse_firmado
+from datos.persona_datos import obtener_persona
+
 class FirmaData(BaseModel):
     imagen: str
 
@@ -75,7 +78,11 @@ def login_page():
 def panel():
     with open("api/static/panel.html", "r", encoding="utf-8") as f:
         return f.read()
-    
+
+@app.get("/ver-qr/{token}", response_class=HTMLResponse)
+def ver_qr():
+    with open("api/static/ver_qr.html", "r", encoding="utf-8") as f:
+        return f.read()
 class LoginDatos(BaseModel):
     username: str
     password: str
@@ -291,9 +298,6 @@ def iniciar_camara_operador(sesion: dict = Depends(verificar_sesion)):
         raise HTTPException(status_code=400, detail=resultado["mensaje"])
 
     return resultado
-@app.get("/firmas-pendientes")
-def listar_firmas_pendientes(sesion: dict = Depends(verificar_sesion)):
-    return {"pendientes": [dict(f) for f in obtener_firmas_pendientes()]}
 
 @app.post("/firmas-pendientes/{id_firma}/regenerar")
 def regenerar_qr(id_firma: int, sesion: dict = Depends(verificar_sesion)):
@@ -524,14 +528,28 @@ def guardar_firma(token: str, datos: FirmaData):
     if datetime.now() > datetime.strptime(firma["token_expira"], "%Y-%m-%d %H:%M:%S"):
         raise HTTPException(410, "El enlace ha expirado")
 
-    encabezado, base64_puro = datos.firma.split(",", 1)
-    imagen_bytes = base64.b64decode(base64_puro)
+    # obtener datos para el acuse
+    persona = obtener_persona(firma["id_persona"])
+    reglamento = obtener_reglamento_vigente()
 
-    import os
-    os.makedirs(FIRMAS_DIR, exist_ok=True)
-    ruta = os.path.join(FIRMAS_DIR, f"firma_{token}.png")
-    with open(ruta, "wb") as f:
-        f.write(imagen_bytes)
+    # generar el PDF de acuse firmado
+    ruta_acuse = generar_acuse_firmado(
+        ruta_reglamento_pdf=reglamento["ruta_pdf_reglamento"],
+        firma_base64=datos.firma,
+        nombre_persona=persona["nombre_persona"],
+        version_reglamento=reglamento["nombre_version_reglamento"],
+        id_persona=firma["id_persona"]
+    )
 
-    actualizar_ruta_firma(token, ruta)
+    # guardar la ruta del acuse (ya no un PNG suelto)
+    actualizar_ruta_firma(token, ruta_acuse)
+
+    # avisarle a la persona por correo, con el acuse adjunto
+    notificar_acuse_firmado(
+        id_persona=firma["id_persona"],
+        id_reglamento=firma["id_reglamento"],
+        correo_persona=persona["correo_persona"],
+        nombre_persona=persona["nombre_persona"],
+        ruta_acuse=ruta_acuse
+    )
     return {"ok": True}

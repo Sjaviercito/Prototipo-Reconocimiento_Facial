@@ -2,11 +2,16 @@ from datos.conexion import obtener_conexion
 from datetime import datetime
 import sqlite3
 
+
+# ASUNCIÓN LEGAL: una sola firma cubre la aceptación del reglamento
+# y del aviso de privacidad. El acuse PDF menciona ambos explícitamente.
+# Validar con jurídico antes de producción.
+
 def obtener_firma(id_persona: int, id_reglamento: int) -> sqlite3.Row | None:
     conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
-        cursor.execute("SELECT * FROM firma WHERE id_persona = ? AND id_reglamento = ?", (id_persona, id_reglamento,))
+        cursor.execute("SELECT * FROM firma WHERE id_persona = ? AND id_reglamento = ? AND ruta_firma IS NOT NULL", (id_persona, id_reglamento,))
         filas = cursor.fetchone()
         return filas
     finally:
@@ -78,3 +83,18 @@ def actualizar_token(id_firma: int, token: str, expira: str) -> None:
         conexion.commit()
     finally:
         conexion.close()
+        
+def obtener_firma_pendiente(id_persona: int, id_reglamento: int) -> sqlite3.Row | None:
+    conexion = obtener_conexion()
+    try:
+        cursor = conexion.cursor()
+        cursor.execute("""
+            SELECT * FROM firma
+            WHERE id_persona = ? AND id_reglamento = ? AND ruta_firma IS NULL AND token_firma IS NOT NULL
+        """, (id_persona, id_reglamento))
+        return cursor.fetchone()
+    finally:
+        conexion.close()
+
+def obtener_o_generar_token_firma(id_persona, id_reglamento, id_usuario) -> str:
+    
