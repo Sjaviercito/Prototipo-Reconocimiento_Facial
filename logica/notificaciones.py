@@ -6,9 +6,17 @@ def notificar_nuevo_reglamento(id_reglamento: int, nombre_version: str) -> None:
     for persona in personas:
         asunto = "Nuevo reglamento SITE"
         cuerpo = f"Hola {persona['nombre_persona']}, hay un nuevo reglamento vigente ({nombre_version}). Debes aceptarlo en tu próxima visita."
-
         try:
             enviar_correo(persona["correo_persona"], asunto, cuerpo)
         except Exception as e:
             insertar_correo_pendiente(persona["id_persona"], id_reglamento, str(e))
-        
+
+
+def notificar_acuse_firmado(id_persona: int, id_reglamento: int, correo_persona: str, nombre_persona: str, ruta_acuse: str) -> None:
+        asunto = "Acuse Confirmacion Aviso de Privacidad y Reglamento SITE"
+        cuerpo = f"Saludos. {nombre_persona}, Te enviamos el acuse firmado con motivos de Auditoria"
+        try:
+            enviar_correo(correo_persona, asunto, cuerpo, ruta_acuse)
+        except Exception as e:
+            insertar_correo_pendiente(id_persona, id_reglamento, str(e))
+            
