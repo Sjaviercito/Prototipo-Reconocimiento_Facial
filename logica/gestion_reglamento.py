@@ -1,6 +1,7 @@
 from datos.reglamento_datos import obtener_reglamento_vigente
 from datos.firma_datos import obtener_firma, insertar_firma, actualizar_token, obtener_firma_pendiente, obtener_firma_por_token
 import uuid
+import sqlite3
 from datetime import datetime, timedelta
 def persona_puede_entrar(id_persona: int) -> dict:
     vigente = obtener_reglamento_vigente()
@@ -12,7 +13,7 @@ def persona_puede_entrar(id_persona: int) -> dict:
         return {"estado": "no_acepto", "reglamento": vigente}
     else:
         return {"estado": "acepto", "reglamento": vigente}
-def registrar_aceptacion(id_persona, id_reglamento, id_usuario, con_firma=False):
+def registrar_aceptacion(id_persona, id_reglamento, id_usuario, con_firma=False, conexion: sqlite3.Connection | None = None):
     token = None
     expira = None
     if con_firma:
@@ -20,7 +21,7 @@ def registrar_aceptacion(id_persona, id_reglamento, id_usuario, con_firma=False)
         expira = (datetime.now() + timedelta(minutes=10)).strftime("%Y-%m-%d %H:%M:%S")
     
     tipo = "firma_manuscrita" if con_firma else "aceptacion_manual"
-    id_firma = insertar_firma(id_persona, id_reglamento, tipo, id_usuario, token_firma=token, token_expira=expira)
+    id_firma = insertar_firma(id_persona, id_reglamento, tipo, id_usuario, token_firma=token, token_expira=expira,conexion=conexion)
     return {"id_firma": id_firma, "token": token}
 
 def generar_token_firma() -> tuple[str, str]:

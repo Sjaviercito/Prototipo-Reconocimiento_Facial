@@ -1,8 +1,10 @@
 from datos.conexion import obtener_conexion
 from datetime import datetime
 import sqlite3
-def insertar_auditoria(id_usuario: int, accion: str, tabla_afectada: str, id_registro_afectado: int) -> int:
-    conexion = obtener_conexion()
+def insertar_auditoria(id_usuario: int, accion: str, tabla_afectada: str, id_registro_afectado: int, conexion: sqlite3.Connection | None = None) -> int:
+    propia = conexion is None
+    if propia:
+        conexion = obtener_conexion() 
     try:
         cursor = conexion.cursor()
         fecha_auditoria = datetime.now().strftime("%Y-%m-%d")
@@ -23,12 +25,13 @@ def insertar_auditoria(id_usuario: int, accion: str, tabla_afectada: str, id_reg
             id_registro_afectado,
             hora_auditoria
         ))
-        
-        conexion.commit()
+        if propia:
+            conexion.commit()
         id_auditoria = cursor.lastrowid
         return id_auditoria
     finally:
-        conexion.close()
+        if propia:
+            conexion.close()
 
 def obtener_toda_la_auditoria() -> list[sqlite3.Row]:
     conexion = obtener_conexion()

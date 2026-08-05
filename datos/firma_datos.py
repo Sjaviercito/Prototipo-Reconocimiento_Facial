@@ -27,8 +27,10 @@ def obtener_firma_por_token(token: str) -> sqlite3.Row | None:
     finally:
         conexion.close()
 
-def insertar_firma(id_persona: int,id_reglamento: int, tipo_firma: str ,id_usuario: int, token_firma: str = None, token_expira: str = None, ruta_firma = None) -> int:
-    conexion = obtener_conexion()
+def insertar_firma(id_persona: int,id_reglamento: int, tipo_firma: str ,id_usuario: int,  token_firma: str = None, token_expira: str = None, ruta_firma = None, conexion: sqlite3.Connection | None = None) -> int:
+    propia = conexion is None
+    if propia:
+        conexion = obtener_conexion()
     try:
         cursor = conexion.cursor()
         fecha_firma = datetime.now().strftime("%Y-%m-%d")
@@ -46,11 +48,13 @@ def insertar_firma(id_persona: int,id_reglamento: int, tipo_firma: str ,id_usuar
                         token_expira)
                         VALUES (?, ?, ?, ?, ?, ?, ?,?,?)""",
                         (id_persona ,id_reglamento, fecha_firma, hora_firma  , tipo_firma,ruta_firma, id_usuario, token_firma, token_expira ))
-        conexion.commit()
+        if propia:
+            conexion.commit()
         id_firma = cursor.lastrowid
         return id_firma
     finally:
-        conexion.close()
+        if propia:
+            conexion.close()
 
 def actualizar_ruta_firma(token: str, ruta: str) -> None:
     conexion = obtener_conexion()
