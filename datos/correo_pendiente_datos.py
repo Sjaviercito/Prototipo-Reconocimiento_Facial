@@ -22,3 +22,5 @@ def insertar_correo_pendiente(id_persona: int, id_reglamento: int, error: str) -
         return cursor.lastrowid
     finally:
         conexion.close()
+
+    

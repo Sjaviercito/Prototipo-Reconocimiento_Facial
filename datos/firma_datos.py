@@ -95,6 +95,4 @@ def obtener_firma_pendiente(id_persona: int, id_reglamento: int) -> sqlite3.Row 
         return cursor.fetchone()
     finally:
         conexion.close()
-
-def obtener_o_generar_token_firma(id_persona, id_reglamento, id_usuario) -> str:
     

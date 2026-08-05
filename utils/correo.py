@@ -2,7 +2,6 @@ import smtplib
 import os
 from email.message import EmailMessage
 from dotenv import load_dotenv
-import base64
 load_dotenv()
 
 SMTP_HOST = os.getenv("SMTP_HOST")
@@ -24,10 +23,6 @@ def enviar_correo(destinatario: str, asunto: str, cuerpo: str, ruta_pdf: str | N
                 subtype="pdf",
                 filename=os.path.basename(ruta_pdf),
 )
-
-        
-           
-
     with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as servidor:
         servidor.starttls()
         servidor.login(SMTP_USER, SMTP_PASSWORD)
