@@ -32,6 +32,7 @@ def recortar_cara(frame, bbox):
     return crop
 
 def preprocesar(crop):
+    crop = cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)
     crop = cv2.resize(crop, (128, 128))
     crop = crop.astype(np.float32) / 255.0
     crop = crop.transpose(2, 0, 1)  # Cambiar de HWC a CHW
