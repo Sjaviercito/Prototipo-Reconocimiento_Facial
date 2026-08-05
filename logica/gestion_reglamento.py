@@ -1,6 +1,5 @@
 from datos.reglamento_datos import obtener_reglamento_vigente
-from datos.firma_datos import obtener_firma, insertar_firma, actualizar_token
-from datos.auditoria_datos import insertar_auditoria
+from datos.firma_datos import obtener_firma, insertar_firma, actualizar_token, obtener_firma_pendiente, obtener_firma_por_token
 import uuid
 from datetime import datetime, timedelta
 def persona_puede_entrar(id_persona: int) -> dict:
@@ -33,3 +32,19 @@ def regenerar_token(id_firma: int) -> str:
     token, expira = generar_token_firma()
     actualizar_token(id_firma, token, expira)
     return token
+
+
+def obtener_o_generar_token_firma(id_persona: int, id_reglamento: int, id_usuario: int) -> str:
+    pendiente = obtener_firma_pendiente(id_persona, id_reglamento)
+    if pendiente is None:
+        token = registrar_aceptacion(id_persona, id_reglamento, id_usuario, con_firma=True)
+        
+        return token["token"]
+    elif datetime.now() > datetime.strptime(pendiente["token_expira"], "%Y-%m-%d %H:%M:%S"): 
+        token = regenerar_token(pendiente["id_firma"])
+        return token
+    else:
+        return pendiente["token_firma"]
+        
+        
+    

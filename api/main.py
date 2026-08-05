@@ -1,3 +1,5 @@
+import token
+
 from fastapi import FastAPI
 import qrcode
 import io
@@ -40,7 +42,7 @@ from vision.login_operador import login_operador_web
 from vision.reconocimiento_visitante import reconocer_visitante_web
 from logica.gestion_visitas import registrar_entrada, registrar_salida
 from datos.visita_datos import tiene_visita_abierta
-from logica.gestion_reglamento import persona_puede_entrar, regenerar_token
+from logica.gestion_reglamento import persona_puede_entrar, regenerar_token, obtener_o_generar_token_firma
 from datos.firma_datos import obtener_firma_por_token, actualizar_ruta_firma
 from utils.generar_acuse import generar_acuse_firmado
 from datos.persona_datos import obtener_persona
@@ -491,8 +493,9 @@ def procesar_visita(
         if verificacion["estado"] == "sin_reglamento":
             raise HTTPException(status_code=400, detail="No hay reglamento vigente")
         if verificacion["estado"] == "no_acepto":
-            raise HTTPException(status_code=409,
-                detail="La persona no ha aceptado el reglamento vigente")
+            token = obtener_o_generar_token_firma(id_persona, verificacion["reglamento"]["id_reglamento"], id_operador)
+            raise HTTPException(409, detail={"mensaje": "No se ha aceptado el reglamento, favor de firmar", "token": token})
+
         try:
             id_visita = registrar_entrada(id_persona, id_operador, ruta_foto, "facial")
             return {"ok": True, "tipo": "entrada",

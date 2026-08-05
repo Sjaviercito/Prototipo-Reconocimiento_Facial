@@ -39,6 +39,10 @@ async function ficharVisitante() {
     const resultado = document.getElementById('resultado');
 
     if (!respuesta.ok) {
+        if (datos.detail.token){
+            window.open(`/ver-qr/${datos.detail.token}`, '_blank')
+            return;
+        }
         resultado.textContent = datos.detail || 'Error al fichar';
         return;
     }
