@@ -14,15 +14,29 @@
     <h2>Firma de aceptación del reglamento</h2>
     <p>Firma dentro del recuadro</p>
     <canvas id="canvas-firma" width="400" height="200"></canvas>
-    <div>
+    <div id="opciones-canva">
         <button onclick="limpiar()">Limpiar</button>
         <button onclick="guardar()">Guardar firma</button>
     </div>
     <p id="mensaje"></p>
 
     <script>
+         async function isFirmado() {
+            const respuesta = await fetch('/firma-estado/' + token)
+            const datos = await respuesta.json();
+            const mensaje = document.getElementById('mensaje')
+            if (datos.firmado === true){
+                mensaje.textContent = "Ya has firmado, puedes cerrar esta ventana"
+                const canvasFirma = document.getElementById('canvas-firma')
+                const opcionesCanva = document.getElementById('opciones-canva')
+                canvasFirma.style.display = 'none'
+                opcionesCanva.style.display = 'none'
+
+            }
+        }
         // el token viene en la URL: /firmar/{token}
         const token = window.location.pathname.split('/').pop();
+        isFirmado()
         const canvas = document.getElementById('canvas-firma');
         const ctx = canvas.getContext('2d');
         let dibujando = false;
@@ -80,7 +94,7 @@
             const datos = await respuesta.json();
             const mensaje = document.getElementById('mensaje');
             if (respuesta.ok) {
-                mensaje.textContent = 'Firma guardada. Puede cerrar esta ventana.';
+                location.reload()
             } else {
                 mensaje.textContent = datos.detail || 'Error al guardar';
             }

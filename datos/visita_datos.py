@@ -12,8 +12,6 @@ def tiene_visita_abierta(id_persona: int) -> bool:
         return resultado is not None
     finally:
         conexion.close()
-        
-
 
 def insertar_visita(visita: DatosVisita) -> int:
     conexion = obtener_conexion()
@@ -101,6 +99,17 @@ def obtener_todas_las_visitas() -> list[sqlite3.Row]:
             ORDER BY v.id_visita DESC
         """)
         resultado = cursor.fetchall()
+        return resultado
+    finally:
+        conexion.close()
+        
+        
+def obtener_ultima_visita(id_persona: int) -> sqlite3.Row | None:
+    conexion = obtener_conexion() 
+    try:
+        cursor = conexion.cursor()
+        cursor.execute("SELECT * FROM visita WHERE id_persona = ? ORDER BY id_visita DESC LIMIT 1", (id_persona,))
+        resultado =  cursor.fetchone()
         return resultado
     finally:
         conexion.close()

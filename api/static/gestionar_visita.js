@@ -1,5 +1,6 @@
 let idOperador = null;
-
+let contador = null;
+let guardarId = null;
 async function loginOperador() {
     const pin = document.getElementById('pin').value.trim();
     if (!pin) { alert('Escribe el PIN'); return; }
@@ -23,6 +24,8 @@ async function loginOperador() {
     document.getElementById('nombre-operador').textContent = datos.nombre;
     document.getElementById('seccion-login').style.display = 'none';
     document.getElementById('seccion-fichaje').style.display = 'block';
+    contador = 10;
+    guardarId = setInterval(contadorFichajes, 1000)
 }
 
 async function ficharVisitante() {
@@ -37,17 +40,25 @@ async function ficharVisitante() {
 
     const datos = await respuesta.json();
     const resultado = document.getElementById('resultado');
-
     if (!respuesta.ok) {
-        if (datos.detail.token){
+        if (respuesta.status === 404){
+            return
+        }
+        else{
+            if (datos.detail.token){
             window.open(`/ver-qr/${datos.detail.token}`, '_blank')
             return;
         }
         resultado.textContent = datos.detail || 'Error al fichar';
         return;
+        } 
     }
-
-    resultado.textContent = `${datos.tipo.toUpperCase()}: ${datos.nombre} (visita ${datos.id_visita})`;
+    if (datos.tipo === "cooldown"){
+        return
+    }else{
+        resultado.textContent = `${datos.tipo.toUpperCase()}: ${datos.nombre} (visita ${datos.id_visita})`;
+    }
+    
 }
 
 function cerrarSesion() {
@@ -55,8 +66,18 @@ function cerrarSesion() {
     document.getElementById('seccion-fichaje').style.display = 'none';
     document.getElementById('seccion-login').style.display = 'block';
     document.getElementById('pin').value = '';
+    clearInterval(guardarId)
 }
 
+function contadorFichajes(){
+    contador = contador -1;
+    const resultado = document.getElementById('contador-fichajes')
+    resultado.textContent = `${contador}`
+    if (contador == 0){
+        ficharVisitante()
+        contador = 10;
+    }
+}
 window.loginOperador = loginOperador;
 window.ficharVisitante = ficharVisitante;
 window.cerrarSesion = cerrarSesion;

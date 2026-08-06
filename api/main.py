@@ -4,7 +4,7 @@ from fastapi import FastAPI
 import qrcode
 import io
 from fastapi import Response
-from config import URL_BASE
+from config import URL_BASE, COOLDOWN_VISITA_SEGUNDOS
 from datos.visita_datos import obtener_visitas_abiertas, obtener_todas_las_visitas
 from fastapi.responses import HTMLResponse
 from fastapi import HTTPException
@@ -40,7 +40,7 @@ from utils.validaciones import validar_pin, validar_password
 from logica.gestion_operadores import validar_pin_unico
 from vision.login_operador import login_operador_web
 from vision.reconocimiento_visitante import reconocer_visitante_web
-from logica.gestion_visitas import registrar_entrada, registrar_salida
+from logica.gestion_visitas import registrar_entrada, registrar_salida, puede_procesar
 from datos.visita_datos import tiene_visita_abierta
 from logica.gestion_reglamento import persona_puede_entrar, regenerar_token, obtener_o_generar_token_firma
 from datos.firma_datos import obtener_firma_por_token, actualizar_ruta_firma
@@ -470,6 +470,8 @@ def procesar_visita(
     if not reconocimiento["ok"]:
         raise HTTPException(status_code=404, detail=reconocimiento["mensaje"])
     id_persona = reconocimiento["id_persona"]
+    if not puede_procesar(id_persona, COOLDOWN_VISITA_SEGUNDOS ):
+        return {"ok": True, "tipo": "cooldown"}
     frame = reconocimiento["frame"]
     # 2. guardar el frame como evidencia
     os.makedirs(ENTRADAS_DIR, exist_ok=True)
@@ -530,7 +532,8 @@ def guardar_firma(token: str, datos: FirmaData):
         raise HTTPException(404, "Token inválido")
     if datetime.now() > datetime.strptime(firma["token_expira"], "%Y-%m-%d %H:%M:%S"):
         raise HTTPException(410, "El enlace ha expirado")
-
+    if firma["ruta_firma"] is not None:
+        raise HTTPException(409, "La firma ya fue registrada")
     # obtener datos para el acuse
     persona = obtener_persona(firma["id_persona"])
     reglamento = obtener_reglamento_vigente()

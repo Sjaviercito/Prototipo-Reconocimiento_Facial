@@ -14,7 +14,7 @@ CARAS_DIR = os.path.join(BASE_DIR, "caras")
 DATA_DIR = os.path.join(BASE_DIR, "data")
 MODELS_DIR = os.path.join(BASE_DIR, "models")
 MODELO_ANTISPOOF_PATH = os.path.join(MODELS_DIR, "best_model_quantized.onnx")
-
+COOLDOWN_VISITA_SEGUNDOS = 30
 EVIDENCIAS_DIR = os.path.join(BASE_DIR, "evidencias")
 ENTRADAS_DIR = os.path.join(EVIDENCIAS_DIR, "entradas")
 SALIDAS_DIR = os.path.join(EVIDENCIAS_DIR, "salidas")

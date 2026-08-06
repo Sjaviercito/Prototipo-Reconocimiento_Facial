@@ -1,6 +1,6 @@
 from datos.persona_datos import obtener_persona
 from datos.autorizador_datos import obtener_autorizador
-from datos.visita_datos import tiene_visita_abierta, insertar_visita, obtener_visita_abierta, cerrar_visita
+from datos.visita_datos import tiene_visita_abierta, insertar_visita, obtener_visita_abierta, cerrar_visita, obtener_ultima_visita
 from datos.auditoria_datos import insertar_auditoria
 from datetime import datetime
 from dominio import DatosVisita
@@ -48,3 +48,20 @@ def registrar_salida(id_persona: int, id_usuario_salida: int, fotografia_salida_
         return id_visita
     else:
         raise ValueError("No se pudo cerrar la visita")
+    
+def puede_procesar(id_persona: int, cooldow_segundos: int) -> bool:
+    ultima = obtener_ultima_visita(id_persona)
+    if ultima is None:
+        return True
+    if ultima["hora_salida_visita"] is not None:
+        hora_evento = ultima["hora_salida_visita"]
+    else:
+        hora_evento = ultima["hora_entrada_visita"]
+    momento_evento = f"{ultima['fecha_visita']} {hora_evento}"
+    resultado = datetime.strptime(momento_evento, "%Y-%m-%d %H:%M:%S")
+    tiempo_transcurido = datetime.now() - resultado 
+    if tiempo_transcurido.total_seconds() < cooldow_segundos:
+        return False
+    return True
+        
+    
