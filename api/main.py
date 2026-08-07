@@ -7,7 +7,7 @@ from fastapi import Response
 from config import URL_BASE, COOLDOWN_VISITA_SEGUNDOS
 from datos.visita_datos import obtener_visitas_abiertas, obtener_todas_las_visitas
 from fastapi.responses import HTMLResponse
-from fastapi import HTTPException
+from fastapi import HTTPException, BackgroundTasks
 from pydantic import BaseModel
 import bcrypt
 import cv2
@@ -38,7 +38,7 @@ from datos.autorizador_datos import obtener_autorizadores, insertar_autorizador
 from datos.autorizador_datos import obtener_autorizadores, insertar_autorizador
 from utils.validaciones import validar_pin, validar_password
 from logica.gestion_operadores import validar_pin_unico
-from vision.login_operador import login_operador_web
+from vision.login_operador import login_operador_web, verificar_cierre_operador
 from vision.reconocimiento_visitante import reconocer_visitante_web
 from logica.gestion_visitas import registrar_entrada, registrar_salida, puede_procesar
 from datos.visita_datos import tiene_visita_abierta
@@ -460,6 +460,14 @@ def login_operador_fichaje(pin: str = Form(...)):
         raise HTTPException(status_code=401, detail=resultado["mensaje"])
     return resultado
 
+@app.post ("/gestionar-visita/logout-operador")
+def logout_operador(id_operador: int = Form(...)):
+    resultado = verificar_cierre_operador(id_operador)
+    if not resultado["ok"]:
+        raise HTTPException(401, detail=resultado["mensaje"] )
+    return {"ok": True}
+    
+    
 @app.post("/gestionar-visita/procesar")
 def procesar_visita(
     id_operador: int = Form(...),
@@ -526,7 +534,7 @@ class FirmaData(BaseModel):
     firma: str
 
 @app.post("/firmar/{token}")
-def guardar_firma(token: str, datos: FirmaData):
+def guardar_firma(token: str, datos: FirmaData, background_tasks: BackgroundTasks):
     firma = obtener_firma_por_token(token)
     if firma is None:
         raise HTTPException(404, "Token inválido")
@@ -551,11 +559,10 @@ def guardar_firma(token: str, datos: FirmaData):
     actualizar_ruta_firma(token, ruta_acuse)
 
     # avisarle a la persona por correo, con el acuse adjunto
-    notificar_acuse_firmado(
+    background_tasks.add_task(notificar_acuse_firmado,
         id_persona=firma["id_persona"],
         id_reglamento=firma["id_reglamento"],
         correo_persona=persona["correo_persona"],
         nombre_persona=persona["nombre_persona"],
-        ruta_acuse=ruta_acuse
-    )
+        ruta_acuse=ruta_acuse)
     return {"ok": True}

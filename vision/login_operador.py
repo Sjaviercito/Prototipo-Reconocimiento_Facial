@@ -25,7 +25,6 @@ from vision.reconocimiento import capturar_y_reconocer
 from datos.operador_datos import obtener_rostros_operadores
 from datos.usuario_datos import obtener_usuario
 
-
 def login_operador_web(pin_ingresado: str) -> dict:
     # preparar lista (id, embedding) de operadores
     operadores_bd = obtener_rostros_operadores()
@@ -45,6 +44,19 @@ def login_operador_web(pin_ingresado: str) -> dict:
         return {"ok": False, "mensaje": "PIN incorrecto"}
     return {"ok": True, "id_operador": id_operador, "nombre": operador["nombre_usuario"]}
 
+def verificar_cierre_operador(id_operador):
+    operadores_bd = obtener_rostros_operadores()
+    lista = []
+    for id_usuario, nombre, username, pin_hash, blob in operadores_bd:
+        embedding = np.frombuffer(blob, dtype=np.float32)
+        lista.append((id_usuario, embedding))
+    # reconocer con el método común
+    resultado = capturar_y_reconocer(lista)
+    if not resultado  ["ok"]:
+        return resultado;
+    if resultado["id"] != id_operador:
+        return {"ok": False, "mensaje": "Operador logeado no reconocido"}
+    return {"ok": True}
 def login_operador():
     cap = cv2.VideoCapture(0)
     contador = 0

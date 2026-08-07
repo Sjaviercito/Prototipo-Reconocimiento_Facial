@@ -37,6 +37,10 @@ async function ficharVisitante() {
         headers: { 'Authorization': 'Bearer ' + token },
         body: formData
     });
+    if (respuesta.status === 401) {
+        manejarNoAutorizado();
+        return;
+    }
 
     const datos = await respuesta.json();
     const resultado = document.getElementById('resultado');
@@ -60,14 +64,31 @@ async function ficharVisitante() {
     }
     
 }
-
-function cerrarSesion() {
-    idOperador = null;
-    document.getElementById('seccion-fichaje').style.display = 'none';
-    document.getElementById('seccion-login').style.display = 'block';
-    document.getElementById('pin').value = '';
-    clearInterval(guardarId)
-}
+async function cerrarSesion(){
+    const formData = new FormData();
+    formData.append('id_operador', idOperador);
+    const respuesta = await fetch('/gestionar-visita/logout-operador', {
+        method: 'POST',
+        headers: {'Authorization': 'Bearer ' + token},
+        body: formData
+    });
+    if (respuesta.status === 401) {
+        manejarNoAutorizado();
+        return;
+    }
+    const datos = await respuesta.json();
+    if (respuesta.ok) {
+        idOperador = null;
+        document.getElementById('seccion-fichaje').style.display = 'none';
+        document.getElementById('seccion-login').style.display = 'block';
+        document.getElementById('pin').value = '';
+        clearInterval(guardarId)
+    }
+    else{
+        alert(datos.detail || 'No se pudo verificar tu identidad')
+       
+        }
+    }
 
 function contadorFichajes(){
     contador = contador -1;
