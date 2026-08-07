@@ -471,6 +471,7 @@ def logout_operador(id_operador: int = Form(...)):
 @app.post("/gestionar-visita/procesar")
 def procesar_visita(
     id_operador: int = Form(...),
+    id_asunto: int = Form(...),
     sesion: dict = Depends(verificar_sesion)
 ):
     # 1. reconocer al visitante (captura el frame)
@@ -507,7 +508,7 @@ def procesar_visita(
             raise HTTPException(409, detail={"mensaje": "No se ha aceptado el reglamento, favor de firmar", "token": token})
 
         try:
-            id_visita = registrar_entrada(id_persona, id_operador, ruta_foto, "facial")
+            id_visita = registrar_entrada(id_persona, id_operador,id_asunto, ruta_foto, "facial")
             return {"ok": True, "tipo": "entrada",
                     "nombre": reconocimiento["nombre"], "id_visita": id_visita}
         except ValueError as e:

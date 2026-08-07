@@ -18,6 +18,7 @@ class DatosVisita:
     id_persona: int
     id_usuario_entrada: int
     id_autorizador: int
+    id_asunto: int
     fecha: str
     hora_entrada: str
     fotografia_entrada: str

@@ -26,8 +26,9 @@ def insertar_visita(visita: DatosVisita) -> int:
             hora_entrada_visita,
             fotografia_entrada_visita,
             tipo_entrada_visita,
-            autorizador_nombre_copiado
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            autorizador_nombre_copiado,
+            id_asunto
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (
             visita.id_persona,
             visita.id_usuario_entrada,
@@ -36,7 +37,8 @@ def insertar_visita(visita: DatosVisita) -> int:
             visita.hora_entrada,
             visita.fotografia_entrada,
             visita.tipo_entrada,
-            visita.autorizador
+            visita.autorizador,
+            visita.id_asunto
         ))
         conexion.commit()
         id_visita = cursor.lastrowid

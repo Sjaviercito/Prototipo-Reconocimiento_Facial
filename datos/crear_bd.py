@@ -32,6 +32,10 @@ def crear_tablas():
             id_departamento INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre_departamento TEX NOT NULL UNIQUE COLLATE NOCASE
         );
+        CREATE TABLE IF NOT EXISTS asunto(
+            id_asunto INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre_asunto TEXT NOT NULL UNIQUE COLLATE NOCASE
+        );
         CREATE TABLE IF NOT EXISTS proveedor(
             id_proveedor INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre_proveedor TEXT NOT NULL UNIQUE COLLATE NOCASE        
@@ -79,10 +83,12 @@ def crear_tablas():
             fotografia_salida_visita BLOB,
             tipo_entrada_visita TEXT NOT NULL,
             autorizador_nombre_copiado TEXT NOT NULL,
+            id_asunto INTEGER NOT NULL,
             FOREIGN KEY (id_usuario_entrada) REFERENCES usuario(id_usuario),
             FOREIGN KEY (id_usuario_salida) REFERENCES usuario(id_usuario),
             FOREIGN KEY (id_autorizador) REFERENCES autorizador(id_autorizador),
-            FOREIGN KEY (id_persona) REFERENCES persona(id_persona)
+            FOREIGN KEY (id_persona) REFERENCES persona(id_persona),
+            FOREIGN KEY (id_asunto) REFERENCES asunto(id_asunto)
         );
         CREATE TABLE IF NOT EXISTS reglamento(
             id_reglamento INTEGER PRIMARY KEY AUTOINCREMENT,

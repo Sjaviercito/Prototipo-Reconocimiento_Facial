@@ -4,7 +4,7 @@ from datos.visita_datos import tiene_visita_abierta, insertar_visita, obtener_vi
 from datos.auditoria_datos import insertar_auditoria
 from datetime import datetime
 from dominio import DatosVisita
-def registrar_entrada(id_persona: int, id_usuario_entrada: int , fotografia_entrada_visita: str, tipo_entrada_visita: str) -> int:
+def registrar_entrada(id_persona: int, id_usuario_entrada: int , fotografia_entrada_visita: str, tipo_entrada_visita: str, id_asunto: int) -> int:
     if tiene_visita_abierta(id_persona):
         raise ValueError("La persona ya tiene una visita abierta")
     persona = obtener_persona(id_persona)
@@ -19,7 +19,8 @@ def registrar_entrada(id_persona: int, id_usuario_entrada: int , fotografia_entr
         hora_entrada=datetime.now().strftime("%H:%M:%S"),
         fotografia_entrada=fotografia_entrada_visita,
         tipo_entrada=tipo_entrada_visita,
-        autorizador=autorizador_nombre
+        autorizador=autorizador_nombre,
+        id_asunto=id_asunto,
     )
     id_visita = insertar_visita(visita)
     insertar_auditoria(
