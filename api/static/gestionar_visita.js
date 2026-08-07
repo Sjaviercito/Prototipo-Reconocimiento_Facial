@@ -24,7 +24,8 @@ async function loginOperador() {
     document.getElementById('nombre-operador').textContent = datos.nombre;
     document.getElementById('seccion-login').style.display = 'none';
     document.getElementById('seccion-fichaje').style.display = 'block';
-    contador = 10;
+    contador = 5;
+    document.getElementById('contador-fichajes').textContent = contador;
     guardarId = setInterval(contadorFichajes, 1000)
 }
 
@@ -65,6 +66,7 @@ async function ficharVisitante() {
     
 }
 async function cerrarSesion(){
+    clearInterval(guardarId)
     const formData = new FormData();
     formData.append('id_operador', idOperador);
     const respuesta = await fetch('/gestionar-visita/logout-operador', {
@@ -82,11 +84,12 @@ async function cerrarSesion(){
         document.getElementById('seccion-fichaje').style.display = 'none';
         document.getElementById('seccion-login').style.display = 'block';
         document.getElementById('pin').value = '';
-        clearInterval(guardarId)
+        
+        
     }
     else{
         alert(datos.detail || 'No se pudo verificar tu identidad')
-       
+        guardarId = setInterval(contadorFichajes, 1000)       
         }
     }
 
@@ -96,7 +99,7 @@ function contadorFichajes(){
     resultado.textContent = `${contador}`
     if (contador == 0){
         ficharVisitante()
-        contador = 10;
+        contador = 5;
     }
 }
 window.loginOperador = loginOperador;

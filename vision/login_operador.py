@@ -6,7 +6,11 @@ from vision.antispoofing import cargar_modelo, es_cara_real
 from datos.operador_datos import obtener_rostros_operadores
 from config import MODELO_ANTISPOOF_PATH, UMBRAL_RECONOCIMIENTO, DET_SIZE
 from getpass import getpass
-
+import bcrypt
+import numpy as np
+from vision.reconocimiento import capturar_y_reconocer
+from datos.operador_datos import obtener_rostros_operadores
+from datos.usuario_datos import obtener_usuario
 session_spoof, input_name_spoof = cargar_modelo(MODELO_ANTISPOOF_PATH)
 operadores_bd = obtener_rostros_operadores()
 operadores = []
@@ -18,12 +22,6 @@ print(f"Operadores cargados:     {len(operadores)}")
 
 app = FaceAnalysis(allowed_modules=['detection','recognition'])
 app.prepare(ctx_id=-1, det_size= DET_SIZE)
-
-import bcrypt
-import numpy as np
-from vision.reconocimiento import capturar_y_reconocer
-from datos.operador_datos import obtener_rostros_operadores
-from datos.usuario_datos import obtener_usuario
 
 def login_operador_web(pin_ingresado: str) -> dict:
     # preparar lista (id, embedding) de operadores
